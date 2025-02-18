@@ -5,16 +5,19 @@ on:
     branches: [ main ]
     paths:
       - 'backend/**'
+      - '.github/workflows/**'
   pull_request:
     branches: [ main ]
     paths:
       - 'backend/**'
+      - '.github/workflows/**'
 
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
     
     env:
+      PYTHONPATH: ${{ github.workspace }}/backend
       OPENAI_API_KEY: test_openai_key
       AZURE_SPEECH_KEY: test_azure_key
       ZONOS_API_KEY: test_zonos_key
@@ -46,9 +49,10 @@ jobs:
       run: |
         # Run linting tools but don't fail the build
         echo "Running linting checks (warnings only)..."
-        python -m flake8 app tests || true
-        python -m pylint app tests || true
-        python -m mypy app tests || true
+        python -m flake8 app tests || echo "Flake8 completed with warnings"
+        python -m pylint app tests || echo "Pylint completed with warnings"
+        python -m mypy app tests || echo "Mypy completed with warnings"
+        echo "All checks completed. See above for any warnings."
         echo "Linting completed with warnings"
         
     - name: Run security scan
