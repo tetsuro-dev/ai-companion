@@ -15,7 +15,6 @@ class SpeechService:
         )
         self.speech_config.speech_recognition_language = "ja-JP"
         self.speech_config.speech_synthesis_language = "ja-JP"
-    
 
     async def text_to_speech(self, text: str) -> bytes:
         speech_synthesizer = speechsdk.SpeechSynthesizer(
@@ -23,12 +22,11 @@ class SpeechService:
             audio_config=None
         )
         result = speech_synthesizer.speak_text_async(text).get()
-        
         if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
             return result.audio_data
         else:
             raise Exception(f"Speech synthesis failed: {result.reason}")
-    
+
     async def recognize_speech(self, audio_data: bytes) -> speechsdk.SpeechRecognitionResult:
         # Create an audio stream from the received bytes
         stream = speechsdk.audio.PushAudioInputStream()
