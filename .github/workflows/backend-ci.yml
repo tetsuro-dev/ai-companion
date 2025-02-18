@@ -37,9 +37,9 @@ jobs:
     - name: Run linting
       working-directory: ./backend
       run: |
-        flake8 app tests || true  # Continue even if there are warnings
-        pylint app tests || true  # Continue even if there are warnings
-        mypy app tests || true  # Continue even if there are warnings
+        flake8 app tests || echo "Flake8 found style issues"
+        pylint app tests || echo "Pylint found style issues"
+        mypy app tests || echo "Mypy found type issues"
         
     - name: Run security scan
       working-directory: ./backend
