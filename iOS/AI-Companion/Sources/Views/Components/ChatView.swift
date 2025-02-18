@@ -28,6 +28,14 @@ struct ChatView: View {
                     .padding(.horizontal)
             }
             
+            if let recognizedText = audioViewModel.recognitionViewModel.recognizedText,
+               !recognizedText.isEmpty {
+                Text(recognizedText)
+                    .foregroundColor(.gray)
+                    .font(.body)
+                    .padding(.horizontal)
+            }
+            
             HStack {
                 TextField("メッセージを入力...", text: $viewModel.inputMessage)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
