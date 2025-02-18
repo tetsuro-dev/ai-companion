@@ -1,6 +1,7 @@
+import logging
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-import logging
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -23,7 +24,7 @@ class TTSResponse(BaseModel):
 @router.post("/synthesize", response_model=TTSResponse)
 async def synthesize_speech(request: TTSRequest):
     try:
-        logger.info(f"Received TTS request for text: {request.text[:50]}...")
+        logger.info("Received TTS request for text: %.50s...", request.text)
         from ...services.tts_service import TTSService
         tts_service = TTSService()
         audio_data = await tts_service.synthesize_speech(
