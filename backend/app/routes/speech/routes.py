@@ -3,7 +3,7 @@ import logging
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 import azure.cognitiveservices.speech as speechsdk
 
-from ...services.speech_service import SpeechService
+from app.services.speech_service import SpeechService
 
 
 # Configure logging
@@ -36,11 +36,13 @@ async def synthesize_speech(websocket: WebSocket):
                 await websocket.send_json({"error": "Missing 'text' field in request"})
     except WebSocketDisconnect:
         logger.info("WebSocket disconnected for synthesis. Client ID: %s", client_id)
-    except Exception as e:
-        logger.error("Error in synthesis WebSocket for client %s: %s", client_id, str(e))
+    except WebSocketDisconnect:
+        logger.info("WebSocket disconnected for synthesis. Client ID: %s", client_id)
+    except (ConnectionError, TimeoutError) as e:
+        logger.error("Connection error in synthesis WebSocket for client %s: %s", client_id, str(e))
         try:
-            await websocket.send_json({"error": "Internal server error"})
-        except Exception:
+            await websocket.send_json({"error": "Connection error"})
+        except WebSocketDisconnect:
             pass
 
 
@@ -66,9 +68,11 @@ async def recognize_speech(websocket: WebSocket):
                 await websocket.send_json({"error": "Speech recognition failed"})
     except WebSocketDisconnect:
         logger.info("WebSocket disconnected for recognition. Client ID: %s", client_id)
-    except Exception as e:
-        logger.error("Error in recognition WebSocket for client %s: %s", client_id, str(e))
+    except WebSocketDisconnect:
+        logger.info("WebSocket disconnected for recognition. Client ID: %s", client_id)
+    except (ConnectionError, TimeoutError) as e:
+        logger.error("Connection error in recognition WebSocket for client %s: %s", client_id, str(e))
         try:
-            await websocket.send_json({"error": "Internal server error"})
-        except Exception:
+            await websocket.send_json({"error": "Connection error"})
+        except WebSocketDisconnect:
             pass
