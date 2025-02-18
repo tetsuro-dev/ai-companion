@@ -7,7 +7,9 @@ from ..core.config import get_settings
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class ChatService:
+
     def __init__(self):
         self.settings = get_settings()
         openai.api_key = self.settings.OPENAI_API_KEY
@@ -46,5 +48,6 @@ class ChatService:
             return generated_text
             
         except Exception as e:
-            logger.error(f"Error generating chat response: {str(e)}")
-            raise Exception(f"Failed to generate response: {str(e)}")
+            error_msg = f"Failed to generate response: {str(e)}"
+            logger.error(f"Error generating chat response: {error_msg}")
+            raise Exception(error_msg)

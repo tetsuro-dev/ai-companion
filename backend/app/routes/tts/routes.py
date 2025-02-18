@@ -1,5 +1,4 @@
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import logging
 
@@ -9,14 +8,17 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+
 class TTSRequest(BaseModel):
     text: str
     voice_id: str = "default"
     language: str = "ja-JP"
 
+
 class TTSResponse(BaseModel):
     audio_url: str
     status: str
+
 
 @router.post("/synthesize", response_model=TTSResponse)
 async def synthesize_speech(request: TTSRequest):
