@@ -33,17 +33,17 @@ class ChatService:
                 {"role": "system", "content": "You are a friendly Japanese-speaking AI companion"},
                 {"role": "user", "content": message}
             ]
-            response = await openai.ChatCompletion.acreate(model="gpt-4", messages=messages)
+            response = await openai.chat.completions.create(model="gpt-4", messages=messages)
 
             if not response.choices:
                 logger.error("No response generated from GPT-4")
                 return None
 
             generated_text = response.choices[0].message.content
-            logger.info(f"Generated response for user {user_id}")
+            logger.info("Generated response for user %s", user_id)
             return generated_text
 
         except Exception as e:
             error_msg = "Failed to generate response: %s"
             logger.error("Error generating chat response: %s", str(e))
-            raise Exception(error_msg % str(e)) from e
+            raise ValueError(error_msg % str(e)) from e
