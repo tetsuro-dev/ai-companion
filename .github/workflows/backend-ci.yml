@@ -34,19 +34,19 @@ jobs:
         pip install -r requirements.txt
         pip install flake8 pylint mypy pytest-cov bandit
         
-    - name: Run tests
+    - name: Run tests and linting
       working-directory: ./backend
-      run: pytest tests/integration/test_api_pipeline.py -v --cov=app --cov-report=xml
-
-    - name: Run linting (informational)
-      working-directory: ./backend
-      continue-on-error: true
       run: |
+        # Run tests first
+        pytest tests/integration/test_api_pipeline.py -v --cov=app --cov-report=xml || exit 1
+        
+        # Run linting tools (informational only)
         echo "Running linting checks (warnings only)..."
         flake8 app tests || echo "Flake8 found style issues"
         pylint app tests || echo "Pylint found style issues"
         mypy app tests || echo "Mypy found type issues"
         echo "Linting completed with warnings"
+        exit 0
         
     - name: Run security scan
       working-directory: ./backend
