@@ -4,7 +4,7 @@ from .speech import router as speech_router
 router = APIRouter()
 
 # Include speech routes
-router.include_router(speech_router, prefix="/speech", tags=["speech"])
+router.include_router(speech_router, tags=["speech"])
 
 
 @router.get("/")

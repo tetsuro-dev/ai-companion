@@ -3,7 +3,7 @@ import azure.cognitiveservices.speech as speechsdk
 from ...services.speech_service import SpeechService
 from ...core.config import get_settings
 
-router = APIRouter()
+router = APIRouter(prefix="/speech")
 speech_service = SpeechService()
 
 @router.websocket("/synthesize")
