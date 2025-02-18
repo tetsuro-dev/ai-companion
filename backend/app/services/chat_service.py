@@ -30,7 +30,7 @@ class ChatService:
         try:
             logger.info(f"Generating response for user {user_id}")
             messages = [
-                {"role": "system", "content": "You are a friendly AI companion who speaks Japanese."},
+                {"role": "system", "content": "You are a friendly Japanese-speaking AI companion"},
                 {"role": "user", "content": message}
             ]
             response = await openai.ChatCompletion.acreate(model="gpt-4", messages=messages)

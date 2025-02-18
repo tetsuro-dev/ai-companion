@@ -61,7 +61,6 @@ def test_full_pipeline():
     )
     assert chat_response.status_code == 200
     chat_data = chat_response.json()
-    
     # 3. Text-to-speech
     tts_response = client.post(
         "/api/synthesize",

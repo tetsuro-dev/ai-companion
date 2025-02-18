@@ -47,7 +47,6 @@ class TTSService:
                         error_text = await response.text()
                         logger.error(f"TTS API error: {error_text}")
                         raise Exception(f"TTS API error: {error_text}")
-                    
                     audio_data = await response.read()
                     logger.info("Successfully synthesized speech")
                     return audio_data
