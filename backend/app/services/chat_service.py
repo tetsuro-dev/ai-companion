@@ -13,6 +13,7 @@ class ChatService:
     def __init__(self):
         self.settings = get_settings()
         openai.api_key = self.settings.OPENAI_API_KEY
+
     async def generate_response(self, message: str, user_id: str) -> Optional[str]:
         """Generate a response using GPT-4 for the given message.
 
