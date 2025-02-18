@@ -1,6 +1,7 @@
+import logging
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-import logging
 
 
 # Configure logging
@@ -24,7 +25,7 @@ class ChatResponse(BaseModel):
 @router.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
     try:
-        logger.info(f"Received chat request from user {request.user_id}")
+        logger.info("Received chat request from user %s", request.user_id)
         from ...services.chat_service import ChatService
         chat_service = ChatService()
         generated_response = await chat_service.generate_response(
@@ -37,9 +38,9 @@ async def chat_endpoint(request: ChatRequest):
         response = ChatResponse(
             response=generated_response, status="success"
         )
-        logger.info(f"Successfully processed chat request for user {request.user_id}")
+        logger.info("Successfully processed chat request for user %s", request.user_id)
         return response
     except Exception as e:
-        error_msg = f"Internal server error: {str(e)}"
-        logger.error(f"Error processing chat request: {error_msg}")
-        raise HTTPException(status_code=500, detail=error_msg)
+        error_msg = "Internal server error: %s"
+        logger.error("Error processing chat request: %s", str(e))
+        raise HTTPException(status_code=500, detail=error_msg % str(e)) from e
