@@ -32,9 +32,9 @@ class TTSService:
             Exception: If there's an error in speech synthesis
         """
         try:
-            logger.info(f"Synthesizing speech for text: {text[:50]}...")
+            logger.info("Synthesizing speech for text: %.50s...", text)
             headers = {
-                "Authorization": f"Bearer {self.api_key}",
+                "Authorization": "Bearer %s" % self.api_key,
                 "Content-Type": "application/json"
             }
             async with aiohttp.ClientSession() as session:
@@ -45,12 +45,12 @@ class TTSService:
                 ) as response:
                     if response.status != 200:
                         error_text = await response.text()
-                        logger.error(f"TTS API error: {error_text}")
-                        raise Exception(f"TTS API error: {error_text}")
+                        logger.error("TTS API error: %s", error_text)
+                        raise Exception("TTS API error: %s" % error_text)
                     audio_data = await response.read()
                     logger.info("Successfully synthesized speech")
                     return audio_data
         except Exception as e:
-            error_msg = f"Failed to synthesize speech: {str(e)}"
-            logger.error(error_msg)
-            raise Exception(error_msg)
+            error_msg = "Failed to synthesize speech: %s"
+            logger.error(error_msg, str(e))
+            raise Exception(error_msg % str(e)) from e
