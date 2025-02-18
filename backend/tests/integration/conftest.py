@@ -1,7 +1,7 @@
 import pytest
 import os
 from unittest.mock import patch
-from .mocks import MockSpeechService
+from .mocks import MockSpeechService, MockOpenAI
 
 @pytest.fixture(autouse=True)
 def mock_env_vars():
@@ -11,7 +11,8 @@ def mock_env_vars():
     os.environ["ZONOS_API_KEY"] = "test_zonos_key"
 
 @pytest.fixture(autouse=True)
-def mock_speech_service():
-    """Mock SpeechService to prevent Azure SDK initialization"""
-    with patch("app.routes.speech.routes.SpeechService", return_value=MockSpeechService()):
+def mock_services():
+    """Mock external services to prevent API calls"""
+    with patch("app.routes.speech.routes.SpeechService", return_value=MockSpeechService()), \
+         patch("app.services.chat_service.openai", MockOpenAI()):
         yield
