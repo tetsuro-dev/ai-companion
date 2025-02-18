@@ -8,7 +8,7 @@ enum WebSocketError: Error {
 }
 
 class WebSocketService {
-    private var webSocketTask: URLSessionWebSocketTask?
+    var webSocketTask: URLSessionWebSocketTask?
     private let baseURL = "ws://localhost:8000"
     
     func connect(to endpoint: String) throws {
@@ -34,19 +34,11 @@ class WebSocketService {
         try await task.send(message)
     }
     
-    func receive() async throws -> String {
+    func receive() async throws -> URLSessionWebSocketTask.Message {
         guard let task = webSocketTask else {
             throw WebSocketError.connectionFailed
         }
         
-        let message = try await task.receive()
-        switch message {
-        case .string(let text):
-            return text
-        case .data:
-            throw WebSocketError.receiveFailed(NSError(domain: "", code: -1))
-        @unknown default:
-            throw WebSocketError.receiveFailed(NSError(domain: "", code: -1))
-        }
+        return try await task.receive()
     }
 }

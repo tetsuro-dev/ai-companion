@@ -3,8 +3,20 @@ import azure.cognitiveservices.speech as speechsdk
 from ...services.speech_service import SpeechService
 from ...core.config import get_settings
 
-router = APIRouter()
+router = APIRouter(prefix="/speech")
 speech_service = SpeechService()
+
+@router.websocket("/synthesize")
+async def synthesize_speech(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            data = await websocket.receive_json()
+            if text := data.get("text"):
+                audio_data = await speech_service.text_to_speech(text)
+                await websocket.send_bytes(audio_data)
+    except WebSocketDisconnect:
+        pass
 
 @router.websocket("/recognize")
 async def recognize_speech(websocket: WebSocket):
