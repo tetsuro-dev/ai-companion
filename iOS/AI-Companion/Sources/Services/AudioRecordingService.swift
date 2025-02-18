@@ -4,11 +4,13 @@ import AVFoundation
 class AudioRecordingService {
     private var audioEngine: AVAudioEngine?
     private var inputNode: AVAudioInputNode?
+    private let webSocketService: WebSocketService
     
     private let targetSampleRate: Double = 16000
     private let bufferSize: AVAudioFrameCount = 1024
     
-    init() {
+    init(webSocketService: WebSocketService) {
+        self.webSocketService = webSocketService
         setupAudioSession()
         setupAudioEngine()
     }
@@ -59,8 +61,12 @@ class AudioRecordingService {
     }
     
     private func processAudioBuffer(_ buffer: AVAudioPCMBuffer) {
-        // Store buffer data for sending to backend
-        // This will be implemented in the next subtask
+        let audioBuffer = buffer.audioBufferList.pointee.mBuffers
+        let audioData = Data(bytes: audioBuffer.mData!, count: Int(audioBuffer.mDataByteSize))
+        
+        Task { [weak self] in
+            try? await self?.webSocketService.send(audioData)
+        }
     }
     
     func startRecording() throws {

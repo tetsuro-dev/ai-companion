@@ -8,9 +8,12 @@ class AudioRecordingViewModel: ObservableObject {
     @Published var errorMessage: String?
     
     private let audioService: AudioRecordingService
+    let recognitionViewModel: RecognitionViewModel
     
     init() {
-        self.audioService = AudioRecordingService()
+        self.recognitionViewModel = RecognitionViewModel()
+        let webSocketService = recognitionViewModel.webSocketService
+        self.audioService = AudioRecordingService(webSocketService: webSocketService)
         Task {
             await checkPermissions()
         }
@@ -36,16 +39,19 @@ class AudioRecordingViewModel: ObservableObject {
         }
         
         do {
+            recognitionViewModel.startRecognition()
             try audioService.startRecording()
             isRecording = true
             errorMessage = nil
         } catch {
+            recognitionViewModel.stopRecognition()
             errorMessage = "録音の開始に失敗しました: \(error.localizedDescription)"
         }
     }
     
     func stopRecording() {
         audioService.stopRecording()
+        recognitionViewModel.stopRecognition()
         isRecording = false
     }
 }
