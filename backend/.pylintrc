@@ -1,0 +1,15 @@
+[MESSAGES CONTROL]
+disable=C0111,  # missing docstring
+        C0103,  # invalid name
+        R0903,  # too few public methods
+        W0511,  # TODO/FIXME comments
+        C0301   # line too long
+
+[FORMAT]
+max-line-length=100
+
+[BASIC]
+good-names=i,j,k,ex,Run,_,id
+
+[MISCELLANEOUS]
+notes=FIXME,XXX,TODO
