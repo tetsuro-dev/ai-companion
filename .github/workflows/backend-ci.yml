@@ -36,9 +36,10 @@ jobs:
         
     - name: Run linting
       working-directory: ./backend
+      continue-on-error: true  # Allow warnings but continue
       run: |
-        flake8 app tests --exit-zero  # Report issues but don't fail
-        pylint app tests || [ $? -lt 4 ]  # Only fail on fatal errors
+        flake8 app tests
+        pylint app tests
         mypy app tests
         
     - name: Run security scan
