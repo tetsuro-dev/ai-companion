@@ -44,6 +44,6 @@ class ChatService:
             return generated_text
 
         except Exception as e:
-            error_msg = f"Failed to generate response: {str(e)}"
-            logger.error(f"Error generating chat response: {error_msg}")
-            raise Exception(error_msg)
+            error_msg = "Failed to generate response: %s"
+            logger.error("Error generating chat response: %s", str(e))
+            raise Exception(error_msg % str(e)) from e
