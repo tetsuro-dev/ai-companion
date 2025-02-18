@@ -1,7 +1,9 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-import azure.cognitiveservices.speech as speechsdk
-from ...services.speech_service import SpeechService
 import logging
+
+import azure.cognitiveservices.speech as speechsdk
+
+from ...services.speech_service import SpeechService
 
 
 # Configure logging
@@ -15,7 +17,7 @@ speech_service = SpeechService()
 @router.websocket("/synthesize")
 async def synthesize_speech(websocket: WebSocket):
     client_id = id(websocket)
-    logger.info(f"New WebSocket connection for synthesis. Client ID: {client_id}")
+    logger.info("New WebSocket connection for synthesis. Client ID: %s", client_id)
     await websocket.accept()
     try:
         while True:
@@ -26,7 +28,7 @@ async def synthesize_speech(websocket: WebSocket):
                 try:
                     audio_data = await speech_service.text_to_speech(text)
                     await websocket.send_bytes(audio_data)
-                    logger.info(f"Successfully sent synthesized audio to client {client_id}")
+                    logger.info("Successfully sent synthesized audio to client %s", client_id)
                 except Exception as e:
                     msg = f"Error synthesizing speech for client {client_id}: {str(e)}"
                     logger.error(msg)
@@ -36,7 +38,7 @@ async def synthesize_speech(websocket: WebSocket):
                 logger.warning(msg)
                 await websocket.send_json({"error": "Missing 'text' field in request"})
     except WebSocketDisconnect:
-        logger.info(f"WebSocket disconnected for synthesis. Client ID: {client_id}")
+        logger.info("WebSocket disconnected for synthesis. Client ID: %s", client_id)
     except Exception as e:
         error_msg = f"Error in synthesis WebSocket: {str(e)}"
         logger.error(f"Client {client_id}: {error_msg}")
