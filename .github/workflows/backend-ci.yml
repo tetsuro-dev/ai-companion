@@ -15,9 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      OPENAI_API_KEY: dummy_key
-      AZURE_SPEECH_KEY: dummy_key
-      ZONOS_API_KEY: dummy_key
+      OPENAI_API_KEY: test_openai_key
+      AZURE_SPEECH_KEY: test_azure_key
+      ZONOS_API_KEY: test_zonos_key
 
     steps:
     - uses: actions/checkout@v3
@@ -34,17 +34,21 @@ jobs:
         pip install -r requirements.txt
         pip install flake8 pylint mypy pytest-cov bandit
         
-    - name: Run tests and checks
+    - name: Run tests
       working-directory: ./backend
       run: |
         # Run tests with coverage
-        pytest tests/integration/test_api_pipeline.py -v --cov=app --cov-report=xml
-        
-        # Run linting tools (informational only)
+        python -m pytest tests/integration/test_api_pipeline.py -v --cov=app --cov-report=xml
+
+    - name: Run linting (informational)
+      working-directory: ./backend
+      continue-on-error: true
+      run: |
+        # Run linting tools but don't fail the build
         echo "Running linting checks (warnings only)..."
-        flake8 app tests || true
-        pylint app tests || true
-        mypy app tests || true
+        python -m flake8 app tests || true
+        python -m pylint app tests || true
+        python -m mypy app tests || true
         echo "Linting completed with warnings"
         
     - name: Run security scan
