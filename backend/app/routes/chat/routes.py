@@ -1,21 +1,25 @@
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import logging
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 router = APIRouter()
+
 
 class ChatRequest(BaseModel):
     message: str
     user_id: str
 
+
 class ChatResponse(BaseModel):
     response: str
     status: str
+
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
