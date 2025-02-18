@@ -28,13 +28,11 @@ async def synthesize_speech(websocket: WebSocket):
                     audio_data = await speech_service.text_to_speech(text)
                     await websocket.send_bytes(audio_data)
                     logger.info("Successfully sent synthesized audio to client %s", client_id)
-                except Exception as e:
-                    msg = f"Error synthesizing speech for client {client_id}: {str(e)}"
-                    logger.error(msg)
+                except ValueError as e:
+                    logger.error("Error synthesizing speech for client %s: %s", client_id, str(e))
                     await websocket.send_json({"error": "Speech synthesis failed"})
             else:
-                msg = f"Invalid data from client {client_id}: missing 'text' field"
-                logger.warning(msg)
+                logger.warning("Invalid data from client %s: missing 'text' field", client_id)
                 await websocket.send_json({"error": "Missing 'text' field in request"})
     except WebSocketDisconnect:
         logger.info("WebSocket disconnected for synthesis. Client ID: %s", client_id)
@@ -54,8 +52,7 @@ async def recognize_speech(websocket: WebSocket):
     try:
         while True:
             audio_data = await websocket.receive_bytes()
-            msg = f"Received audio data from client {client_id}. Size: {len(audio_data)} bytes"
-            logger.info(msg)
+            logger.info("Received audio data from client %s. Size: %d bytes", client_id, len(audio_data))
             try:
                 result = await speech_service.recognize_speech(audio_data)
                 response = {
@@ -64,7 +61,7 @@ async def recognize_speech(websocket: WebSocket):
                 }
                 await websocket.send_json(response)
                 logger.info("Successfully sent recognition result to client %s", client_id)
-            except Exception as e:
+            except ValueError as e:
                 logger.error("Error recognizing speech for client %s: %s", client_id, str(e))
                 await websocket.send_json({"error": "Speech recognition failed"})
     except WebSocketDisconnect:
