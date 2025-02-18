@@ -20,8 +20,10 @@ class ChatViewModel: ObservableObject {
         
         do {
             let response: [String: Any] = try await apiClient.request("chat", method: "POST")
-            if let content = response["message"] as? String {
-                let aiMessage = Message(content: content, isFromUser: false)
+            if let content = response["message"] as? String,
+               let audioDataBase64 = response["audio"] as? String,
+               let audioData = Data(base64Encoded: audioDataBase64) {
+                let aiMessage = Message(content: content, isFromUser: false, audioData: audioData)
                 messages.append(aiMessage)
             }
         } catch {
