@@ -17,12 +17,12 @@ async def synthesize_speech(websocket: WebSocket):
     client_id = id(websocket)
     logger.info(f"New WebSocket connection for synthesis. Client ID: {client_id}")
     await websocket.accept()
-    
     try:
         while True:
             data = await websocket.receive_json()
             if text := data.get("text"):
-                logger.info(f"Synthesizing speech for client {client_id}. Text: {text[:50]}...")
+                msg = f"Synthesizing speech for client {client_id}. Text: {text[:50]}..."
+                logger.info(msg)
                 try:
                     audio_data = await speech_service.text_to_speech(text)
                     await websocket.send_bytes(audio_data)
@@ -50,12 +50,11 @@ async def recognize_speech(websocket: WebSocket):
     client_id = id(websocket)
     logger.info(f"New WebSocket connection for recognition. Client ID: {client_id}")
     await websocket.accept()
-    
     try:
         while True:
             audio_data = await websocket.receive_bytes()
-            logger.info(f"Received audio data from client {client_id}. Size: {len(audio_data)} bytes")
-            
+            msg = f"Received audio data from client {client_id}. Size: {len(audio_data)} bytes"
+            logger.info(msg)
             try:
                 result = await speech_service.recognize_speech(audio_data)
                 response = {
