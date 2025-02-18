@@ -52,7 +52,7 @@ async def recognize_speech(websocket: WebSocket):
     try:
         while True:
             audio_data = await websocket.receive_bytes()
-            logger.info("Received audio data from client %s. Size: %d bytes", client_id, len(audio_data))
+            logger.info("Audio data from client %s. Size: %d bytes", client_id, len(audio_data))
             try:
                 result = await speech_service.recognize_speech(audio_data)
                 response = {
