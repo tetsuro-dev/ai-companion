@@ -13,13 +13,18 @@ class APIClient {
     
     private init() {}
     
-    func request<T: Decodable>(_ endpoint: String, method: String = "GET") async throws -> T {
+    func request<T: Decodable>(_ endpoint: String, method: String = "GET", body: [String: Any]? = nil) async throws -> T {
         guard let url = URL(string: "\(baseURL)/\(endpoint)") else {
             throw APIError.invalidURL
         }
         
         var request = URLRequest(url: url)
         request.httpMethod = method
+        
+        if let body = body {
+            request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        }
         
         let (data, _) = try await URLSession.shared.data(for: request)
         

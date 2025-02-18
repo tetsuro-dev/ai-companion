@@ -7,7 +7,7 @@ struct HomeView: View {
                 .font(.largeTitle)
                 .padding()
             
-            // TODO: Add character view and chat interface
+            ChatView()
         }
     }
 }
