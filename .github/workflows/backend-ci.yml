@@ -34,10 +34,6 @@ jobs:
         
     - name: Run tests
       run: python -m pytest tests/integration/test_api_pipeline.py -v
-
-    steps:
-    - uses: actions/checkout@v3
-    
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
