@@ -18,37 +18,30 @@ class TTSService:
     async def synthesize_speech(
         self, text: str, voice_id: str = "default", language: str = "ja-JP"
     ) -> Optional[bytes]:
-        """
-        Convert text to speech using Zonos API.
-        
+        """Convert text to speech using Zonos API.
+
         Args:
             text (str): The text to convert to speech
             voice_id (str): The voice ID to use
             language (str): The language code
-            
+
         Returns:
             Optional[bytes]: The audio data or None if an error occurs
-            
+
         Raises:
             Exception: If there's an error in speech synthesis
         """
         try:
             logger.info(f"Synthesizing speech for text: {text[:50]}...")
-            
             headers = {
                 "Authorization": f"Bearer {self.api_key}",
                 "Content-Type": "application/json"
             }
-            
             async with aiohttp.ClientSession() as session:
                 async with session.post(
                     f"{self.base_url}/synthesize",
                     headers=headers,
-                    json={
-                        "text": text,
-                        "voice_id": voice_id,
-                        "language": language
-                    }
+                    json={"text": text, "voice_id": voice_id, "language": language}
                 ) as response:
                     if response.status != 200:
                         error_text = await response.text()
