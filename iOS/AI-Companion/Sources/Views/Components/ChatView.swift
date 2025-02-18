@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ChatView: View {
     @StateObject private var viewModel = ChatViewModel()
+    @StateObject private var audioViewModel = AudioRecordingViewModel()
     
     var body: some View {
         VStack {
@@ -20,10 +21,30 @@ struct ChatView: View {
                 }
             }
             
+            if let errorMessage = audioViewModel.errorMessage {
+                Text(errorMessage)
+                    .foregroundColor(.red)
+                    .font(.caption)
+                    .padding(.horizontal)
+            }
+            
             HStack {
                 TextField("メッセージを入力...", text: $viewModel.inputMessage)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .disabled(viewModel.isLoading)
+                    .disabled(viewModel.isLoading || audioViewModel.isRecording)
+                
+                Button(action: {
+                    if audioViewModel.isRecording {
+                        audioViewModel.stopRecording()
+                    } else {
+                        audioViewModel.startRecording()
+                    }
+                }) {
+                    Image(systemName: audioViewModel.isRecording ? "stop.circle.fill" : "mic.circle.fill")
+                        .font(.title2)
+                        .foregroundColor(audioViewModel.isRecording ? .red : .blue)
+                }
+                .disabled(!audioViewModel.hasPermission)
                 
                 Button(action: {
                     Task {
@@ -33,7 +54,7 @@ struct ChatView: View {
                     Image(systemName: "arrow.up.circle.fill")
                         .font(.title2)
                 }
-                .disabled(viewModel.inputMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || viewModel.isLoading)
+                .disabled(viewModel.inputMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || viewModel.isLoading || audioViewModel.isRecording)
             }
             .padding()
         }
