@@ -1,10 +1,12 @@
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from .routes.base import router as base_router
 from .routes.speech import router as speech_router
 from .routes.chat import router as chat_router
 from .routes.tts import router as tts_router
-import logging
 
 # Configure logging
 logging.basicConfig(

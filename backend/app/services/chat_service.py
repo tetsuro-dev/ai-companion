@@ -28,7 +28,7 @@ class ChatService:
             Exception: If there's an error in generating the response
         """
         try:
-            logger.info(f"Generating response for user {user_id}")
+            logger.info("Generating response for user %s", user_id)
             messages = [
                 {"role": "system", "content": "You are a friendly Japanese-speaking AI companion"},
                 {"role": "user", "content": message}
