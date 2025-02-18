@@ -3,83 +3,108 @@ import XCTest
 
 class AudioPlaybackServiceTests: XCTestCase {
     var sut: AudioPlaybackService!
+    var mockWebSocketService: MockWebSocketService!
     
     override func setUp() {
         super.setUp()
-        sut = AudioPlaybackService.shared
+        mockWebSocketService = MockWebSocketService()
+        sut = AudioPlaybackService(webSocketService: mockWebSocketService)
     }
     
     override func tearDown() {
-        sut.stop()
+        sut.stopPlayback()
         sut = nil
+        mockWebSocketService = nil
         super.tearDown()
     }
     
-    func testPlayValidAudioData() throws {
-        // Given
-        let validData = Data(repeating: 0, count: 1024) // Mock audio data
-        
+    func testConnectSuccess() async throws {
         // When
-        try sut.play(data: validData)
+        try await sut.connect()
         
         // Then
-        XCTAssertTrue(sut.isPlaying())
-        XCTAssertGreaterThan(sut.duration, 0)
+        XCTAssertTrue(mockWebSocketService.isConnected)
     }
     
-    func testPlayInvalidAudioData() {
+    func testConnectFailure() async {
         // Given
-        let invalidData = Data() // Empty data
+        mockWebSocketService.shouldThrowError = true
         
         // When/Then
-        XCTAssertThrowsError(try sut.play(data: invalidData)) { error in
-            XCTAssertTrue(error is AudioPlaybackError)
-            if case AudioPlaybackError.playbackFailed = error {
-                // Expected error
-            } else {
-                XCTFail("Unexpected error type: \(error)")
-            }
+        do {
+            try await sut.connect()
+            XCTFail("Expected connection to fail")
+        } catch {
+            XCTAssertTrue(error is WebSocketError)
         }
     }
     
-    func testStopPlayback() throws {
+    func testDisconnect() async throws {
         // Given
-        let validData = Data(repeating: 0, count: 1024)
-        try sut.play(data: validData)
-        XCTAssertTrue(sut.isPlaying())
+        try await sut.connect()
+        XCTAssertTrue(mockWebSocketService.isConnected)
         
         // When
-        sut.stop()
+        sut.disconnect()
         
         // Then
-        XCTAssertFalse(sut.isPlaying())
-        XCTAssertEqual(sut.currentTime, 0)
+        XCTAssertFalse(mockWebSocketService.isConnected)
     }
     
-    func testPlaybackProgress() throws {
+    func testPlayTTSSuccess() async throws {
         // Given
-        let validData = Data(repeating: 0, count: 1024)
+        let text = "Hello"
+        let mockAudioData = Data(repeating: 0, count: 1024)
+        mockWebSocketService.mockAudioData = mockAudioData
         
         // When
-        try sut.play(data: validData)
+        try await sut.playTTS(text: text)
         
         // Then
-        XCTAssertGreaterThanOrEqual(sut.duration, 0)
-        XCTAssertGreaterThanOrEqual(sut.currentTime, 0)
-        XCTAssertLessThanOrEqual(sut.currentTime, sut.duration)
+        XCTAssertTrue(mockWebSocketService.didSendMessage)
+        XCTAssertTrue(mockWebSocketService.didReceiveMessage)
     }
     
-    func testResourceCleanup() throws {
+    func testPlayTTSFailureInvalidData() async {
         // Given
-        let validData = Data(repeating: 0, count: 1024)
-        try sut.play(data: validData)
+        let text = "Hello"
+        mockWebSocketService.shouldReturnInvalidData = true
+        
+        // When/Then
+        do {
+            try await sut.playTTS(text: text)
+            XCTFail("Expected playTTS to fail")
+        } catch let error as AudioPlaybackError {
+            XCTAssertEqual(error, .invalidAudioData)
+        }
+    }
+    
+    func testPlayTTSFailureConnectionLost() async {
+        // Given
+        let text = "Hello"
+        mockWebSocketService.shouldDisconnectDuringOperation = true
+        
+        // When/Then
+        do {
+            try await sut.playTTS(text: text)
+            XCTFail("Expected playTTS to fail")
+        } catch let error as WebSocketError {
+            XCTAssertEqual(error, .connectionFailed)
+        }
+    }
+    
+    func testResourceCleanup() async throws {
+        // Given
+        try await sut.connect()
+        let text = "Hello"
+        let mockAudioData = Data(repeating: 0, count: 1024)
+        mockWebSocketService.mockAudioData = mockAudioData
+        try await sut.playTTS(text: text)
         
         // When
-        sut.stop()
+        sut.disconnect()
         
         // Then
-        XCTAssertFalse(sut.isPlaying())
-        XCTAssertEqual(sut.currentTime, 0)
-        XCTAssertEqual(sut.duration, 0)
+        XCTAssertFalse(mockWebSocketService.isConnected)
     }
 }

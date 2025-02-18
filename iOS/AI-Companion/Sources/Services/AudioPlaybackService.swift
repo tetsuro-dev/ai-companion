@@ -1,3 +1,4 @@
+import Foundation
 import AVFoundation
 import os.log
 
@@ -7,42 +8,19 @@ enum AudioPlaybackError: Error {
     case playbackFailed(Error)
     /// Indicates a failure in audio session setup
     case sessionSetupFailed(Error)
+    /// Indicates invalid audio data was received
+    case invalidAudioData
 }
 
-/// Protocol defining the interface for audio playback services.
-/// This protocol allows for different implementations (e.g., direct playback, TTS, streaming)
-/// while maintaining a consistent interface for the view models.
-protocol AudioPlaybackServiceProtocol {
-    /// Plays the provided audio data
-    /// - Parameter data: The audio data to play
-    /// - Throws: AudioPlaybackError if playback fails
-    func play(data: Data) throws
-    
-    /// Stops the current audio playback
-    func stop()
-    
-    /// Checks if audio is currently playing
-    /// - Returns: true if audio is playing, false otherwise
-    func isPlaying() -> Bool
-    
-    /// The duration of the current audio in seconds
-    var duration: TimeInterval { get }
-    
-    /// The current playback position in seconds
-    var currentTime: TimeInterval { get set }
-}
-
-/// Service responsible for handling audio playback functionality.
-/// This implementation uses AVAudioPlayer for direct audio file playback.
-class AudioPlaybackService: NSObject, AudioPlaybackServiceProtocol, AVAudioPlayerDelegate {
-    /// Shared instance for singleton access
-    static let shared = AudioPlaybackService()
-    
+/// Service responsible for handling audio playback functionality using WebSocket-based TTS.
+class AudioPlaybackService {
     private var audioPlayer: AVAudioPlayer?
-    private var logger = Logger(subsystem: "com.ai-companion", category: "AudioPlayback")
+    private let webSocketService: WebSocketService
+    private var isConnected = false
+    private let logger = Logger(subsystem: "com.ai-companion", category: "AudioPlayback")
     
-    private override init() {
-        super.init()
+    init(webSocketService: WebSocketService) {
+        self.webSocketService = webSocketService
         setupAudioSession()
     }
     
@@ -55,26 +33,70 @@ class AudioPlaybackService: NSObject, AudioPlaybackServiceProtocol, AVAudioPlaye
             logger.info("Audio session setup completed successfully")
         } catch {
             logger.error("Failed to setup audio session: \(error.localizedDescription)")
-            // We log the error but don't throw since this is called from init
-            // Errors will surface when trying to play audio
+        }
+    }
+    
+    /// Connects to the TTS WebSocket service
+    /// - Throws: WebSocketError if connection fails
+    func connect() async throws {
+        try webSocketService.connect(to: "speech/synthesize")
+        isConnected = true
+        logger.info("Connected to TTS service")
+    }
+    
+    /// Disconnects from the TTS WebSocket service and stops playback
+    func disconnect() {
+        webSocketService.disconnect()
+        stopPlayback()
+        isConnected = false
+        logger.info("Disconnected from TTS service")
+    }
+    
+    /// Plays text using TTS through WebSocket
+    /// - Parameter text: The text to convert to speech
+    /// - Throws: AudioPlaybackError or WebSocketError if playback fails
+    func playTTS(text: String) async throws {
+        if !isConnected {
+            try await connect()
+        }
+        
+        let message = ["text": text]
+        let data = try JSONSerialization.data(withJSONObject: message)
+        try await webSocketService.send(data)
+        logger.info("Sent TTS request: \(text)")
+        
+        let audioData = try await receiveAudioData()
+        try await play(audioData: audioData)
+    }
+    
+    /// Receives audio data from the WebSocket
+    /// - Returns: The received audio data
+    /// - Throws: AudioPlaybackError if invalid data is received
+    private func receiveAudioData() async throws -> Data {
+        let message = try await webSocketService.receive()
+        switch message {
+        case .data(let audioData):
+            logger.info("Received audio data")
+            return audioData
+        case .string, _:
+            logger.error("Received invalid audio data")
+            throw AudioPlaybackError.invalidAudioData
         }
     }
     
     /// Plays the provided audio data
-    /// - Parameter data: The audio data to play
+    /// - Parameter audioData: The audio data to play
     /// - Throws: AudioPlaybackError if playback fails
-    func play(data: Data) throws {
+    private func play(audioData: Data) async throws {
+        stopPlayback()
         do {
-            audioPlayer = try AVAudioPlayer(data: data)
-            audioPlayer?.delegate = self
+            audioPlayer = try AVAudioPlayer(data: audioData)
             audioPlayer?.prepareToPlay()
-            
             guard audioPlayer?.play() == true else {
                 logger.error("Failed to start audio playback")
-                throw AudioPlaybackError.playbackFailed(NSError(domain: "AudioPlayback", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to start audio playback"]))
+                throw AudioPlaybackError.playbackFailed(NSError(domain: "AudioPlayback", code: -1))
             }
-            
-            logger.info("Started audio playback successfully")
+            logger.info("Started audio playback")
         } catch {
             logger.error("Failed to initialize audio player: \(error.localizedDescription)")
             throw AudioPlaybackError.playbackFailed(error)
@@ -82,42 +104,9 @@ class AudioPlaybackService: NSObject, AudioPlaybackServiceProtocol, AVAudioPlaye
     }
     
     /// Stops the current audio playback
-    func stop() {
+    func stopPlayback() {
         audioPlayer?.stop()
         audioPlayer = nil
         logger.info("Stopped audio playback")
-    }
-    
-    /// Checks if audio is currently playing
-    /// - Returns: true if audio is playing, false otherwise
-    func isPlaying() -> Bool {
-        return audioPlayer?.isPlaying ?? false
-    }
-    
-    /// The duration of the current audio in seconds
-    var duration: TimeInterval {
-        return audioPlayer?.duration ?? 0
-    }
-    
-    /// The current playback position in seconds
-    var currentTime: TimeInterval {
-        get { return audioPlayer?.currentTime ?? 0 }
-        set { audioPlayer?.currentTime = newValue }
-    }
-    
-    // MARK: - AVAudioPlayerDelegate
-    
-    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
-        if !flag {
-            logger.error("Audio playback finished unsuccessfully")
-        } else {
-            logger.info("Audio playback finished successfully")
-        }
-    }
-    
-    func audioPlayerDecodeErrorDidOccur(_ player: AVAudioPlayer, error: Error?) {
-        if let error = error {
-            logger.error("Audio decode error occurred: \(error.localizedDescription)")
-        }
     }
 }

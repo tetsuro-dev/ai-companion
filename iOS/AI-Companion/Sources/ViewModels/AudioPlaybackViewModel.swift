@@ -1,87 +1,49 @@
 import Foundation
-import Combine
+import AVFoundation
 import os.log
 
-/// ViewModel responsible for managing audio playback state and user interface
+/// ViewModel responsible for managing TTS playback state and user interface
 @MainActor
 class AudioPlaybackViewModel: ObservableObject {
-    /// Published properties for UI binding
-    @Published private(set) var isPlaying: Bool = false
-    @Published private(set) var progress: Double = 0
-    @Published private(set) var errorMessage: String?
+    @Published var isPlaying = false
+    @Published var progress: Double = 0
+    @Published var errorMessage: String?
     
-    private let playbackService: AudioPlaybackServiceProtocol
-    private var progressTimer: Timer?
+    private let audioService: AudioPlaybackService
     private let logger = Logger(subsystem: "com.ai-companion", category: "AudioPlaybackViewModel")
     
-    /// Initializes the ViewModel with a playback service
-    /// - Parameter service: The service to use for audio playback. Defaults to shared instance.
-    init(service: AudioPlaybackServiceProtocol = AudioPlaybackService.shared) {
-        self.playbackService = service
+    init() {
+        let webSocketService = WebSocketService()
+        self.audioService = AudioPlaybackService(webSocketService: webSocketService)
         logger.info("AudioPlaybackViewModel initialized")
     }
     
-    /// Plays the provided audio data
-    /// - Parameter data: The audio data to play
-    func playAudio(data: Data) {
+    /// Plays text using TTS
+    /// - Parameter text: The text to convert to speech
+    func playTTS(text: String) async {
         do {
-            try playbackService.play(data: data)
+            try await audioService.connect()
+            try await audioService.playTTS(text: text)
             isPlaying = true
-            startProgressTracking()
-            logger.info("Started playing audio")
-        } catch let error as AudioPlaybackError {
-            handlePlaybackError(error)
+            errorMessage = nil
+            logger.info("Started TTS playback: \(text)")
         } catch {
-            handlePlaybackError(.playbackFailed(error))
+            errorMessage = "再生に失敗しました: \(error.localizedDescription)"
+            isPlaying = false
+            logger.error("TTS playback failed: \(error.localizedDescription)")
         }
     }
     
     /// Stops the current audio playback
-    func stopAudio() {
-        playbackService.stop()
+    func stopPlayback() {
+        audioService.disconnect()
         isPlaying = false
-        stopProgressTracking()
         progress = 0
-        logger.info("Stopped audio playback")
-    }
-    
-    /// Starts tracking playback progress
-    private func startProgressTracking() {
-        progressTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
-            let duration = self.playbackService.duration
-            if duration > 0 {
-                self.progress = self.playbackService.currentTime / duration
-            }
-            if !self.playbackService.isPlaying() {
-                self.stopAudio()
-            }
-        }
-        logger.debug("Started progress tracking")
-    }
-    
-    /// Stops tracking playback progress
-    private func stopProgressTracking() {
-        progressTimer?.invalidate()
-        progressTimer = nil
-        logger.debug("Stopped progress tracking")
-    }
-    
-    /// Handles playback errors and updates UI accordingly
-    private func handlePlaybackError(_ error: AudioPlaybackError) {
-        logger.error("Playback error occurred: \(error.localizedDescription)")
-        switch error {
-        case .playbackFailed(let underlyingError):
-            errorMessage = "音声の再生に失敗しました: \(underlyingError.localizedDescription)"
-        case .sessionSetupFailed(let underlyingError):
-            errorMessage = "オーディオセッションの設定に失敗しました: \(underlyingError.localizedDescription)"
-        }
-        isPlaying = false
-        stopProgressTracking()
+        logger.info("Stopped playback")
     }
     
     deinit {
-        stopProgressTracking()
+        stopPlayback()
         logger.info("AudioPlaybackViewModel deallocated")
     }
 }

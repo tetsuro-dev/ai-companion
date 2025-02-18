@@ -4,86 +4,113 @@ import XCTest
 @MainActor
 class AudioPlaybackViewModelTests: XCTestCase {
     var sut: AudioPlaybackViewModel!
-    var mockService: MockAudioPlaybackService!
+    var mockWebSocketService: MockWebSocketService!
     
     override func setUp() async throws {
         super.setUp()
-        mockService = MockAudioPlaybackService()
-        sut = AudioPlaybackViewModel(service: mockService)
+        mockWebSocketService = MockWebSocketService()
+        sut = AudioPlaybackViewModel()
+        // Replace WebSocketService with mock
+        let mirror = Mirror(reflecting: sut.audioService)
+        if let webSocketServiceProperty = mirror.children.first(where: { $0.label == "webSocketService" }) {
+            // Hack to set private property for testing
+            let webSocketServiceObject = webSocketServiceProperty.value as AnyObject
+            webSocketServiceObject.setValue(mockWebSocketService, forKey: "webSocketService")
+        }
     }
     
     override func tearDown() {
         sut = nil
-        mockService = nil
+        mockWebSocketService = nil
         super.tearDown()
     }
     
-    func testPlayAudioSuccess() async {
+    func testPlayTTSSuccess() async {
         // Given
-        let testData = Data(repeating: 0, count: 1024)
+        let text = "Hello"
+        let mockAudioData = Data(repeating: 0, count: 1024)
+        mockWebSocketService.mockAudioData = mockAudioData
         
         // When
-        sut.playAudio(data: testData)
+        await sut.playTTS(text: text)
         
         // Then
-        XCTAssertEqual(mockService.playCallCount, 1)
         XCTAssertTrue(sut.isPlaying)
         XCTAssertNil(sut.errorMessage)
+        XCTAssertTrue(mockWebSocketService.didSendMessage)
     }
     
-    func testPlayAudioFailure() async {
+    func testPlayTTSFailureConnection() async {
         // Given
-        let testData = Data(repeating: 0, count: 1024)
-        mockService.shouldThrowError = true
+        let text = "Hello"
+        mockWebSocketService.shouldThrowError = true
         
         // When
-        sut.playAudio(data: testData)
+        await sut.playTTS(text: text)
         
         // Then
-        XCTAssertEqual(mockService.playCallCount, 1)
         XCTAssertFalse(sut.isPlaying)
         XCTAssertNotNil(sut.errorMessage)
+        XCTAssertTrue(sut.errorMessage?.contains("再生に失敗しました") ?? false)
     }
     
-    func testStopAudio() async {
+    func testPlayTTSFailureInvalidData() async {
         // Given
-        let testData = Data(repeating: 0, count: 1024)
-        sut.playAudio(data: testData)
+        let text = "Hello"
+        mockWebSocketService.shouldReturnInvalidData = true
+        
+        // When
+        await sut.playTTS(text: text)
+        
+        // Then
+        XCTAssertFalse(sut.isPlaying)
+        XCTAssertNotNil(sut.errorMessage)
+        XCTAssertTrue(sut.errorMessage?.contains("再生に失敗しました") ?? false)
+    }
+    
+    func testStopPlayback() async {
+        // Given
+        let text = "Hello"
+        let mockAudioData = Data(repeating: 0, count: 1024)
+        mockWebSocketService.mockAudioData = mockAudioData
+        await sut.playTTS(text: text)
         XCTAssertTrue(sut.isPlaying)
         
         // When
-        sut.stopAudio()
+        sut.stopPlayback()
         
         // Then
-        XCTAssertEqual(mockService.stopCallCount, 1)
         XCTAssertFalse(sut.isPlaying)
         XCTAssertEqual(sut.progress, 0)
+        XCTAssertFalse(mockWebSocketService.isConnected)
     }
     
-    func testProgressTracking() async {
+    func testConnectionLostDuringPlayback() async {
         // Given
-        let testData = Data(repeating: 0, count: 1024)
+        let text = "Hello"
+        mockWebSocketService.shouldDisconnectDuringOperation = true
         
         // When
-        sut.playAudio(data: testData)
+        await sut.playTTS(text: text)
         
         // Then
-        XCTAssertTrue(sut.isPlaying)
-        // Wait for progress update
-        try? await Task.sleep(nanoseconds: 200_000_000) // 0.2 seconds
-        XCTAssertGreaterThan(sut.progress, 0)
-    }
-    
-    func testErrorMessageLocalization() async {
-        // Given
-        let testData = Data(repeating: 0, count: 1024)
-        mockService.shouldThrowError = true
-        
-        // When
-        sut.playAudio(data: testData)
-        
-        // Then
+        XCTAssertFalse(sut.isPlaying)
         XCTAssertNotNil(sut.errorMessage)
-        XCTAssertTrue(sut.errorMessage?.contains("音声の再生に失敗しました") ?? false)
+        XCTAssertTrue(sut.errorMessage?.contains("再生に失敗しました") ?? false)
+    }
+    
+    func testCleanupOnDeinit() async {
+        // Given
+        let text = "Hello"
+        let mockAudioData = Data(repeating: 0, count: 1024)
+        mockWebSocketService.mockAudioData = mockAudioData
+        await sut.playTTS(text: text)
+        XCTAssertTrue(sut.isPlaying)
+        
+        // When
+        sut = nil
+        
+        // Then
+        XCTAssertFalse(mockWebSocketService.isConnected)
     }
 }
