@@ -40,7 +40,7 @@ async def synthesize_speech(websocket: WebSocket):
         logger.error(f"Unexpected error in synthesis WebSocket for client {client_id}: {str(e)}")
         try:
             await websocket.send_json({"error": f"Unexpected error: {str(e)}"})
-        except:
+        except Exception:
             pass
 
 
@@ -74,5 +74,5 @@ async def recognize_speech(websocket: WebSocket):
         logger.error(f"Unexpected error in recognition WebSocket for client {client_id}: {str(e)}")
         try:
             await websocket.send_json({"error": f"Unexpected error: {str(e)}"})
-        except:
+        except Exception:
             pass
