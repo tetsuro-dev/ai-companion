@@ -26,7 +26,9 @@ class ChatResponse(BaseModel):
 async def chat_endpoint(request: ChatRequest):
     try:
         logger.info("Received chat request from user %s", request.user_id)
-        from ...services.chat_service import ChatService
+from app.services.chat_service import ChatService
+
+        chat_service = ChatService()
         chat_service = ChatService()
         generated_response = await chat_service.generate_response(
             message=request.message, user_id=request.user_id

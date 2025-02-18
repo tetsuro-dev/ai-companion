@@ -1,7 +1,7 @@
 import logging
 from typing import Optional
 import aiohttp
-from ..core.config import get_settings
+from app.core.config import get_settings
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
