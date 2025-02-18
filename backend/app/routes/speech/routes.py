@@ -67,7 +67,7 @@ async def recognize_speech(websocket: WebSocket):
     except WebSocketDisconnect:
         logger.info("WebSocket disconnected for recognition. Client ID: %s", client_id)
     except (ConnectionError, TimeoutError) as e:
-        logger.error("Connection error in recognition WebSocket for client %s: %s", client_id, str(e))
+        logger.error("WebSocket connection error for client %s: %s", client_id, str(e))
         try:
             await websocket.send_json({"error": "Connection error"})
         except WebSocketDisconnect:
