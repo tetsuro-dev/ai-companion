@@ -37,9 +37,10 @@ async def synthesize_speech(websocket: WebSocket):
     except WebSocketDisconnect:
         logger.info(f"WebSocket disconnected for synthesis. Client ID: {client_id}")
     except Exception as e:
-        logger.error(f"Unexpected error in synthesis WebSocket for client {client_id}: {str(e)}")
+        error_msg = f"Error in synthesis WebSocket: {str(e)}"
+        logger.error(f"Client {client_id}: {error_msg}")
         try:
-            await websocket.send_json({"error": f"Unexpected error: {str(e)}"})
+            await websocket.send_json({"error": error_msg})
         except Exception:
             pass
 
@@ -71,8 +72,9 @@ async def recognize_speech(websocket: WebSocket):
     except WebSocketDisconnect:
         logger.info(f"WebSocket disconnected for recognition. Client ID: {client_id}")
     except Exception as e:
-        logger.error(f"Unexpected error in recognition WebSocket for client {client_id}: {str(e)}")
+        error_msg = f"Error in recognition WebSocket: {str(e)}"
+        logger.error(f"Client {client_id}: {error_msg}")
         try:
-            await websocket.send_json({"error": f"Unexpected error: {str(e)}"})
+            await websocket.send_json({"error": error_msg})
         except Exception:
             pass
