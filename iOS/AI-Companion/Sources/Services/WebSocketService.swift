@@ -8,7 +8,7 @@ enum WebSocketError: Error {
 }
 
 class WebSocketService {
-    private var webSocketTask: URLSessionWebSocketTask?
+    var webSocketTask: URLSessionWebSocketTask?
     private let baseURL = "ws://localhost:8000"
     
     func connect(to endpoint: String) throws {
