@@ -34,17 +34,17 @@ def test_tts_endpoint():
     assert "status" in data
     assert data["status"] == "success"
 
+
 @pytest.mark.asyncio
 async def test_speech_websocket():
     """Test the speech recognition WebSocket endpoint"""
     with client.websocket_connect("/api/speech/recognize") as websocket:
         # Send dummy audio data
         websocket.send_bytes(b"dummy_audio_data")
-        
-        # Receive response
         data = websocket.receive_json()
         assert "text" in data
         assert "is_final" in data
+
 
 def test_full_pipeline():
     """Test the complete pipeline: Speech → Chat → TTS"""
@@ -53,7 +53,7 @@ def test_full_pipeline():
         websocket.send_bytes(b"dummy_audio_data")
         speech_result = websocket.receive_json()
         assert "text" in speech_result
-    
+
     # 2. Chat processing
     chat_response = client.post(
         "/api/chat",
