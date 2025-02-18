@@ -1,8 +1,8 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 import azure.cognitiveservices.speech as speechsdk
 from ...services.speech_service import SpeechService
-from ...core.config import get_settings
 import logging
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/speech")
 speech_service = SpeechService()
+
 
 @router.websocket("/synthesize")
 async def synthesize_speech(websocket: WebSocket):
@@ -21,7 +22,7 @@ async def synthesize_speech(websocket: WebSocket):
         while True:
             data = await websocket.receive_json()
             if text := data.get("text"):
-                logger.info(f"Synthesizing speech for client {client_id}. Text length: {len(text)}")
+                logger.info(f"Synthesizing speech for client {client_id}. Text: {text[:50]}...")
                 try:
                     audio_data = await speech_service.text_to_speech(text)
                     await websocket.send_bytes(audio_data)
@@ -41,6 +42,7 @@ async def synthesize_speech(websocket: WebSocket):
             await websocket.send_json({"error": f"Unexpected error: {str(e)}"})
         except:
             pass
+
 
 @router.websocket("/recognize")
 async def recognize_speech(websocket: WebSocket):
