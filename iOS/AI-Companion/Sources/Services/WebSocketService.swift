@@ -34,12 +34,16 @@ class WebSocketService {
         try await task.send(message)
     }
     
-    func receive() async throws -> String {
+    func receive() async throws -> URLSessionWebSocketTask.Message {
         guard let task = webSocketTask else {
             throw WebSocketError.connectionFailed
         }
         
-        let message = try await task.receive()
+        return try await task.receive()
+    }
+    
+    func receiveText() async throws -> String {
+        let message = try await receive()
         switch message {
         case .string(let text):
             return text

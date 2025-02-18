@@ -51,12 +51,18 @@ class AudioPlaybackService {
     }
     
     private func receiveAudioData() async throws -> Data? {
-        let message = try await webSocketService.receive()
+        // WebSocketService.receive() returns String, but for TTS we expect binary data
+        // We'll need to modify WebSocketService to handle binary data
+        guard let task = webSocketService.webSocketTask else {
+            throw WebSocketError.connectionFailed
+        }
+        
+        let message = try await task.receive()
         switch message {
-        case .string:
-            throw AudioPlaybackError.invalidAudioData
         case .data(let audioData):
             return audioData
+        case .string:
+            throw AudioPlaybackError.invalidAudioData
         @unknown default:
             throw AudioPlaybackError.invalidAudioData
         }
