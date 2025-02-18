@@ -21,13 +21,12 @@ class TTSResponse(BaseModel):
     status: str
 
 
+from app.services.tts_service import TTSService
+
 @router.post("/synthesize", response_model=TTSResponse)
 async def synthesize_speech(request: TTSRequest):
     try:
         logger.info("Received TTS request for text: %.50s...", request.text)
-from app.services.tts_service import TTSService
-
-        tts_service = TTSService()
         tts_service = TTSService()
         audio_data = await tts_service.synthesize_speech(
             text=request.text,
