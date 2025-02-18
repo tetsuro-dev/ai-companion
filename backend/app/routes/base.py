@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from .speech import router as speech_router
+from app.routes.speech.routes import router as speech_router
 
 router = APIRouter()
 
