@@ -34,12 +34,20 @@ jobs:
         pip install -r requirements.txt
         pip install flake8 pylint mypy pytest-cov bandit
         
-    - name: Run linting
+    - name: Run flake8
       working-directory: ./backend
-      run: |
-        flake8 app tests || echo "Flake8 found style issues"
-        pylint app tests || echo "Pylint found style issues"
-        mypy app tests || echo "Mypy found type issues"
+      continue-on-error: true
+      run: flake8 app tests
+
+    - name: Run pylint
+      working-directory: ./backend
+      continue-on-error: true
+      run: pylint app tests
+
+    - name: Run mypy
+      working-directory: ./backend
+      continue-on-error: true
+      run: mypy app tests
         
     - name: Run security scan
       working-directory: ./backend
