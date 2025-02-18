@@ -28,8 +28,9 @@ async def synthesize_speech(websocket: WebSocket):
                     await websocket.send_bytes(audio_data)
                     logger.info(f"Successfully sent synthesized audio to client {client_id}")
                 except Exception as e:
-                    logger.error(f"Error synthesizing speech for client {client_id}: {str(e)}")
-                    await websocket.send_json({"error": f"Speech synthesis failed: {str(e)}"})
+                    msg = f"Error synthesizing speech for client {client_id}: {str(e)}"
+                    logger.error(msg)
+                    await websocket.send_json({"error": "Speech synthesis failed"})
             else:
                 logger.warning(f"Received invalid data from client {client_id}: missing 'text' field")
                 await websocket.send_json({"error": "Missing 'text' field in request"})
@@ -63,11 +64,10 @@ async def recognize_speech(websocket: WebSocket):
                 }
                 await websocket.send_json(response)
                 logger.info(f"Successfully sent recognition result to client {client_id}")
-                
             except Exception as e:
-                logger.error(f"Error recognizing speech for client {client_id}: {str(e)}")
-                await websocket.send_json({"error": f"Speech recognition failed: {str(e)}"})
-                
+                msg = f"Error recognizing speech for client {client_id}: {str(e)}"
+                logger.error(msg)
+                await websocket.send_json({"error": "Speech recognition failed"})
     except WebSocketDisconnect:
         logger.info(f"WebSocket disconnected for recognition. Client ID: {client_id}")
     except Exception as e:

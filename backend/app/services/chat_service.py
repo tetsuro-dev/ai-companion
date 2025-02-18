@@ -40,7 +40,7 @@ class ChatService:
                 return None
 
             generated_text = response.choices[0].message.content
-            logger.info(f"Successfully generated response for user {user_id}")
+            logger.info(f"Generated response for user {user_id}")
             return generated_text
 
         except Exception as e:
