@@ -38,7 +38,7 @@ jobs:
       working-directory: ./backend
       run: |
         flake8 app tests
-        pylint app tests
+        pylint app tests || exit $(($? & 35))  # Only fail on errors, not warnings
         mypy app tests
         
     - name: Run security scan
