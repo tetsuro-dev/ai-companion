@@ -1,6 +1,9 @@
 import pytest
 from fastapi.testclient import TestClient
-from ...app.main import app
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+from app.main import app
 import json
 
 client = TestClient(app)
