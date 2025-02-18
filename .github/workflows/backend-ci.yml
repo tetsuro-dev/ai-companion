@@ -3,14 +3,14 @@ name: Backend CI/CD
 on:
   push:
     branches: [ main ]
-    paths:
-      - 'backend/**'
-      - '.github/workflows/**'
   pull_request:
     branches: [ main ]
-    paths:
-      - 'backend/**'
-      - '.github/workflows/**'
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        description: 'Run the workflow with debug logging'
+        required: false
+        default: false
 
 jobs:
   lint-and-test:
