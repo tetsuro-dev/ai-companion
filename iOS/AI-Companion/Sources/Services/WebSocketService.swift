@@ -41,16 +41,4 @@ class WebSocketService {
         
         return try await task.receive()
     }
-    
-    func receiveText() async throws -> String {
-        let message = try await receive()
-        switch message {
-        case .string(let text):
-            return text
-        case .data:
-            throw WebSocketError.receiveFailed(NSError(domain: "", code: -1))
-        @unknown default:
-            throw WebSocketError.receiveFailed(NSError(domain: "", code: -1))
-        }
-    }
 }

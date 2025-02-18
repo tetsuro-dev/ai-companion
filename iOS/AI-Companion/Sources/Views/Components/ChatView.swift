@@ -6,8 +6,7 @@ struct ChatView: View {
     @StateObject private var viewModel: ChatViewModel
     
     init() {
-        let playbackVM = AudioPlaybackViewModel()
-        _viewModel = StateObject(wrappedValue: ChatViewModel(audioPlaybackViewModel: playbackVM))
+        _viewModel = StateObject(wrappedValue: ChatViewModel(audioPlaybackViewModel: audioPlaybackViewModel))
     }
     
     var body: some View {
