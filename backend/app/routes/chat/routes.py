@@ -24,6 +24,7 @@ class ChatResponse(BaseModel):
 
 from app.services.chat_service import ChatService
 
+
 @router.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
     try:

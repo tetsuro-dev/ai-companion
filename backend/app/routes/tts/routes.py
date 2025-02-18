@@ -23,6 +23,7 @@ class TTSResponse(BaseModel):
 
 from app.services.tts_service import TTSService
 
+
 @router.post("/synthesize", response_model=TTSResponse)
 async def synthesize_speech(request: TTSRequest):
     try:
