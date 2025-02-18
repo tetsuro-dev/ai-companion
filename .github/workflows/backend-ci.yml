@@ -2,18 +2,16 @@ name: Backend CI/CD
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+      - 'devin/**'
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
   workflow_dispatch:
-    inputs:
-      debug_enabled:
-        description: 'Run the workflow with debug logging'
-        required: false
-        default: false
 
 jobs:
-  lint-and-test:
+  test:
     runs-on: ubuntu-latest
     
     env:
@@ -40,20 +38,19 @@ jobs:
     - name: Run tests
       working-directory: ./backend
       run: |
-        # Run tests with coverage
+        echo "Running tests..."
         python -m pytest tests/integration/test_api_pipeline.py -v --cov=app --cov-report=xml
+        echo "Tests completed successfully"
 
-    - name: Run linting (informational)
+    - name: Run code quality checks
       working-directory: ./backend
       continue-on-error: true
       run: |
-        # Run linting tools but don't fail the build
-        echo "Running linting checks (warnings only)..."
+        echo "Running code quality checks..."
         python -m flake8 app tests || echo "Flake8 completed with warnings"
         python -m pylint app tests || echo "Pylint completed with warnings"
         python -m mypy app tests || echo "Mypy completed with warnings"
-        echo "All checks completed. See above for any warnings."
-        echo "Linting completed with warnings"
+        echo "Code quality checks completed"
         
     - name: Run security scan
       working-directory: ./backend
