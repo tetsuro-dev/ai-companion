@@ -1,8 +1,14 @@
 import SwiftUI
 
 struct ChatView: View {
-    @StateObject private var viewModel = ChatViewModel()
+    @StateObject private var audioPlaybackViewModel = AudioPlaybackViewModel()
     @StateObject private var audioViewModel = AudioRecordingViewModel()
+    @StateObject private var viewModel: ChatViewModel
+    
+    init() {
+        let playbackVM = AudioPlaybackViewModel()
+        _viewModel = StateObject(wrappedValue: ChatViewModel(audioPlaybackViewModel: playbackVM))
+    }
     
     var body: some View {
         VStack {
@@ -37,9 +43,19 @@ struct ChatView: View {
             }
             
             HStack {
+                if audioPlaybackViewModel.isPlaying {
+                    Button(action: {
+                        audioPlaybackViewModel.stopPlayback()
+                    }) {
+                        Image(systemName: "stop.circle.fill")
+                            .font(.title2)
+                            .foregroundColor(.red)
+                    }
+                }
+                
                 TextField("メッセージを入力...", text: $viewModel.inputMessage)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .disabled(viewModel.isLoading || audioViewModel.isRecording)
+                    .disabled(viewModel.isLoading || audioViewModel.isRecording || audioPlaybackViewModel.isPlaying)
                 
                 Button(action: {
                     if audioViewModel.isRecording {
