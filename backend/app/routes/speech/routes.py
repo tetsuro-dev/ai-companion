@@ -34,7 +34,6 @@ async def synthesize_speech(websocket: WebSocket):
             else:
                 logger.warning(f"Received invalid data from client {client_id}: missing 'text' field")
                 await websocket.send_json({"error": "Missing 'text' field in request"})
-                
     except WebSocketDisconnect:
         logger.info(f"WebSocket disconnected for synthesis. Client ID: {client_id}")
     except Exception as e:

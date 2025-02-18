@@ -65,11 +65,7 @@ def test_full_pipeline():
     # 3. Text-to-speech
     tts_response = client.post(
         "/api/synthesize",
-        json={
-            "text": chat_data["response"],
-            "voice_id": "default",
-            "language": "ja-JP"
-        }
+        json={"text": chat_data["response"], "voice_id": "default", "language": "ja-JP"}
     )
     assert tts_response.status_code == 200
     tts_data = tts_response.json()
