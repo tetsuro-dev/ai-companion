@@ -1,9 +1,9 @@
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
-import json
 
 client = TestClient(app)
+
 
 def test_chat_endpoint():
     """Test the chat endpoint with a simple message"""
@@ -16,6 +16,7 @@ def test_chat_endpoint():
     assert "response" in data
     assert "status" in data
     assert data["status"] == "success"
+
 
 def test_tts_endpoint():
     """Test the text-to-speech endpoint"""

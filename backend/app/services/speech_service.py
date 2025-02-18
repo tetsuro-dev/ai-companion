@@ -1,11 +1,13 @@
 import azure.cognitiveservices.speech as speechsdk
 from ..core.config import get_settings
 import asyncio
-from typing import Optional
+
 
 settings = get_settings()
 
+
 class SpeechService:
+
     def __init__(self):
         self.speech_config = speechsdk.SpeechConfig(
             subscription=settings.azure_speech_key,
@@ -14,6 +16,7 @@ class SpeechService:
         self.speech_config.speech_recognition_language = "ja-JP"
         self.speech_config.speech_synthesis_language = "ja-JP"
     
+
     async def text_to_speech(self, text: str) -> bytes:
         speech_synthesizer = speechsdk.SpeechSynthesizer(
             speech_config=self.speech_config,
