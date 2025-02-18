@@ -55,4 +55,5 @@ struct MessageBubbleView: View {
                     .padding(.horizontal)
             }
         }
+    }
 }
