@@ -31,18 +31,13 @@ class SpeechService:
         # Create an audio stream from the received bytes
         stream = speechsdk.audio.PushAudioInputStream()
         stream.write(audio_data)
-        
         # Configure audio input
         audio_config = speechsdk.audio.AudioConfig(stream=stream)
-        
         # Create speech recognizer
         speech_recognizer = speechsdk.SpeechRecognizer(
-            speech_config=self.speech_config,
-            audio_config=audio_config
+            speech_config=self.speech_config, audio_config=audio_config
         )
-        
         # Use async recognition
         future = speech_recognizer.recognize_once_async()
         result = await asyncio.wrap_future(future)
-        
         return result
