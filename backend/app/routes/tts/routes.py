@@ -3,6 +3,8 @@ import logging
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+from app.services.tts_service import TTSService
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -19,9 +21,6 @@ class TTSRequest(BaseModel):
 class TTSResponse(BaseModel):
     audio_url: str
     status: str
-
-
-from app.services.tts_service import TTSService
 
 
 @router.post("/synthesize", response_model=TTSResponse)
