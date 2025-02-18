@@ -3,6 +3,8 @@ import logging
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+from app.services.chat_service import ChatService
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -20,9 +22,6 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     response: str
     status: str
-
-
-from app.services.chat_service import ChatService
 
 
 @router.post("/chat", response_model=ChatResponse)

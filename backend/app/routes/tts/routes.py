@@ -5,9 +5,11 @@ from pydantic import BaseModel
 
 from app.services.tts_service import TTSService
 
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 router = APIRouter()
 
