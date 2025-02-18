@@ -1,6 +1,6 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 import logging
 
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 import azure.cognitiveservices.speech as speechsdk
 
 from ...services.speech_service import SpeechService
