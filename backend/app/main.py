@@ -30,6 +30,8 @@ app.include_router(speech_router, prefix="/api")
 app.include_router(chat_router, prefix="/api")
 app.include_router(tts_router, prefix="/api")
 
+
+# Add startup event handler
 @app.on_event("startup")
 async def startup_event():
     logger.info("Application starting up...")
