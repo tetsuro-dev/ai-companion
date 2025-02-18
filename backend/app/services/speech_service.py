@@ -25,7 +25,7 @@ class SpeechService:
         )
         result = speech_synthesizer.speak_text_async(text).get()
         if result.reason != speechsdk.ResultReason.SynthesizingAudioCompleted:
-            raise ValueError("Speech synthesis failed: %s" % result.reason)
+            raise ValueError(f"Speech synthesis failed: {result.reason}")
         return result.audio_data
 
     async def recognize_speech(self, audio_data: bytes) -> speechsdk.SpeechRecognitionResult:

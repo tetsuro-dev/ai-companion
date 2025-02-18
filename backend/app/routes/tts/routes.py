@@ -46,8 +46,6 @@ async def synthesize_speech(request: TTSRequest):
         logger.info("Successfully processed TTS request")
         return response
     except Exception as e:
-        logger.error(f"Error processing TTS request: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Internal server error: {str(e)}"
-        )
+        error_msg = f"Internal server error: {str(e)}"
+        logger.error("Error processing TTS request: %s", str(e))
+        raise HTTPException(status_code=500, detail=error_msg) from e
