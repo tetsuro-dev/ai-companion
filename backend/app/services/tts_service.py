@@ -7,13 +7,17 @@ from ..core.config import get_settings
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class TTSService:
+
     def __init__(self):
         self.settings = get_settings()
         self.api_key = self.settings.ZONOS_API_KEY
         self.base_url = "https://api.zonos.ai/v1"
-        
-    async def synthesize_speech(self, text: str, voice_id: str = "default", language: str = "ja-JP") -> Optional[bytes]:
+
+    async def synthesize_speech(
+        self, text: str, voice_id: str = "default", language: str = "ja-JP"
+    ) -> Optional[bytes]:
         """
         Convert text to speech using Zonos API.
         
@@ -54,7 +58,7 @@ class TTSService:
                     audio_data = await response.read()
                     logger.info("Successfully synthesized speech")
                     return audio_data
-                    
         except Exception as e:
-            logger.error(f"Error synthesizing speech: {str(e)}")
-            raise Exception(f"Failed to synthesize speech: {str(e)}")
+            error_msg = f"Failed to synthesize speech: {str(e)}"
+            logger.error(error_msg)
+            raise Exception(error_msg)
