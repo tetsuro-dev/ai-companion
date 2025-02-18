@@ -61,6 +61,9 @@ struct ChatView: View {
                     if audioViewModel.isRecording {
                         audioViewModel.stopRecording()
                     } else {
+                        if audioPlaybackViewModel.isPlaying {
+                            audioPlaybackViewModel.stopPlayback()
+                        }
                         audioViewModel.startRecording()
                     }
                 }) {
