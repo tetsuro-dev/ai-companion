@@ -8,10 +8,10 @@ NS_ASSUME_NONNULL_BEGIN
 @protocol Live2DModelDelegate <NSObject>
 
 @required
-- (void)onModelLoaded NS_SWIFT_NAME(modelLoaded());
-- (void)onModelUpdated NS_SWIFT_NAME(modelUpdated());
-- (void)onExpressionUpdated:(NSString *)expression NS_SWIFT_NAME(expressionUpdated(_:));
-- (void)onLipSyncUpdated:(float)value NS_SWIFT_NAME(lipSyncUpdated(_:));
+- (void)onModelLoaded NS_SWIFT_NAME(modelDidLoad);
+- (void)onModelUpdated NS_SWIFT_NAME(modelDidUpdate);
+- (void)onExpressionUpdated:(NSString *)expression NS_SWIFT_NAME(expressionDidUpdate(_:));
+- (void)onLipSyncUpdated:(float)value NS_SWIFT_NAME(lipSyncDidUpdate(_:));
 
 @end
 
