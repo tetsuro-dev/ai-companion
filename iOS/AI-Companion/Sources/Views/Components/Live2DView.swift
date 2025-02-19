@@ -54,13 +54,16 @@ struct Live2DView: UIViewRepresentable {
             parent.viewModel.update(deltaTime: deltaTime)
             parent.viewModel.render(in: view, commandBuffer: commandBuffer)
             
-            commandBuffer.present(view.currentDrawable!)
-            commandBuffer.commit()
-            
-            // Update performance metrics
-            PerformanceMonitor.shared.updateFPS()
-            if frameCount % 60 == 0 { // Log every 60 frames
-                PerformanceMonitor.shared.logPerformanceMetrics(device: device)
+            if let drawable = view.currentDrawable {
+                commandBuffer.present(drawable)
+                commandBuffer.commit()
+                
+                // Update performance metrics
+                frameCount += 1
+                PerformanceMonitor.shared.updateFPS()
+                if frameCount % 60 == 0 { // Log every 60 frames
+                    PerformanceMonitor.shared.logPerformanceMetrics(device: device)
+                }
             }
         }
         
@@ -68,7 +71,9 @@ struct Live2DView: UIViewRepresentable {
     }
 }
 
-#Preview {
-    Live2DView(viewModel: try! Live2DViewModel())
-        .frame(width: 300, height: 400)
+struct Live2DView_Previews: PreviewProvider {
+    static var previews: some View {
+        Live2DView(viewModel: try! Live2DViewModel())
+            .frame(width: 300, height: 400)
+    }
 }
