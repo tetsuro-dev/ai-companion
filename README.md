@@ -58,12 +58,19 @@ git clone https://github.com/tetsuro-dev/ai-companion.git
 ```
 
 2. 必要な環境変数の設定
-以下の環境変数を`.env`ファイルに設定してください：
-```
-OPENAI_API_KEY=your_openai_api_key
-AZURE_SPEECH_KEY=your_azure_speech_key
-ZONOS_API_KEY=your_zonos_api_key
-```
+    詳細な設定方法は[環境変数のドキュメント](backend/docs/env_vars.md)を参照してください。
+    
+    必要な環境変数：
+    - OPENAI_API_KEY (OpenAI GPT-4 APIキー)
+    - AZURE_SPEECH_KEY (Azure Speech Servicesキー)
+    - ZONOS_API_KEY (Zonos Text-to-Speech APIキー)
+
+    `.env`ファイルの設定例：
+    ```
+    OPENAI_API_KEY=your_openai_api_key
+    AZURE_SPEECH_KEY=your_azure_speech_key
+    ZONOS_API_KEY=your_zonos_api_key
+    ```
 
 3. iOSアプリの開発
 - Xcode 14.0以上が必要です
