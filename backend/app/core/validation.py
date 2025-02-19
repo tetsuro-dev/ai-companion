@@ -1,7 +1,7 @@
 import re
 from typing import Dict, List, Optional
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class EnvVarError(Exception):
@@ -23,19 +23,22 @@ class EnvironmentVariables(BaseModel):
     azure_speech_key: str = Field(..., description="Azure Speech Servicesキー")
     zonos_api_key: str = Field(..., description="Zonos APIキー")
     
-    @validator("openai_api_key")
+    @field_validator("openai_api_key")
+    @classmethod
     def validate_openai_key(cls, v: str) -> str:
         if not re.match(r"^sk-[A-Za-z0-9]{48}$", v):
             raise ValueError("OpenAI APIキーの形式が正しくありません")
         return v
     
-    @validator("azure_speech_key")
+    @field_validator("azure_speech_key")
+    @classmethod
     def validate_azure_key(cls, v: str) -> str:
         if not re.match(r"^[A-Fa-f0-9]{32}$", v):
             raise ValueError("Azure Speech Servicesキーの形式が正しくありません")
         return v
     
-    @validator("zonos_api_key")
+    @field_validator("zonos_api_key")
+    @classmethod
     def validate_zonos_key(cls, v: str) -> str:
         if not re.match(r"^z_[A-Za-z0-9]{32}$", v):
             raise ValueError("Zonos APIキーの形式が正しくありません")
@@ -47,17 +50,21 @@ class EnvironmentVariables(BaseModel):
         invalid = {}
         
         # Check for missing variables
-        for field_name in self.__fields__:
-            value = getattr(self, field_name, None)
+        for field_name in self.model_fields:
+            value = getattr(self, field_name)
             if not value:
                 missing.append(field_name)
                 continue
             
-            # Validate format
+            # Validate format using field validators
             try:
-                validator = self.__fields__[field_name].field_info.extra.get("validator")
-                if validator:
-                    validator(self, value)
+                # Use the field validator directly
+                if field_name == "openai_api_key":
+                    self.validate_openai_key(value)
+                elif field_name == "azure_speech_key":
+                    self.validate_azure_key(value)
+                elif field_name == "zonos_api_key":
+                    self.validate_zonos_key(value)
             except ValueError as e:
                 invalid[field_name] = str(e)
         
