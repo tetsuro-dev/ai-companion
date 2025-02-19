@@ -1,28 +1,75 @@
 import Foundation
-
-enum WebSocketError: Error {
-    case connectionFailed
-    case sendFailed(Error)
-    case receiveFailed(Error)
-    case invalidURL
-}
+import Combine
 
 class WebSocketService {
+    @Published private(set) var state: ConnectionState = .disconnected
+    private var reconnectionStrategy: ReconnectionStrategy
+    private var reconnectionAttempt: Int = 0
+    private var reconnectionTask: Task<Void, Never>?
+    private var endpoint: String?
+    
     var webSocketTask: URLSessionWebSocketTask?
     private let baseURL = "ws://localhost:8000"
     
+    init(reconnectionStrategy: ReconnectionStrategy = ExponentialBackoff()) {
+        self.reconnectionStrategy = reconnectionStrategy
+    }
+    
     func connect(to endpoint: String) throws {
-        guard let url = URL(string: "\(baseURL)/\(endpoint)") else {
+        self.endpoint = endpoint
+        try establishConnection()
+    }
+    
+    private func establishConnection() throws {
+        guard let endpoint = endpoint,
+              let url = URL(string: "\(baseURL)/\(endpoint)") else {
             throw WebSocketError.invalidURL
         }
         
+        state = .connecting
         let session = URLSession(configuration: .default)
         webSocketTask = session.webSocketTask(with: url)
         webSocketTask?.resume()
+        
+        startListeningForMessages()
+        state = .connected
+        reconnectionAttempt = 0
+    }
+    
+    private func startListeningForMessages() {
+        webSocketTask?.receive { [weak self] result in
+            guard let self = self else { return }
+            
+            switch result {
+            case .success:
+                self.startListeningForMessages()
+            case .failure:
+                self.handleDisconnection()
+            }
+        }
+    }
+    
+    private func handleDisconnection() {
+        guard state != .disconnected else { return }
+        
+        state = .reconnecting
+        reconnectionTask?.cancel()
+        reconnectionTask = Task {
+            let delay = reconnectionStrategy.nextDelay(attempt: reconnectionAttempt)
+            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+            
+            if !Task.isCancelled {
+                reconnectionAttempt += 1
+                try? establishConnection()
+            }
+        }
     }
     
     func disconnect() {
+        reconnectionTask?.cancel()
         webSocketTask?.cancel(with: .normalClosure, reason: nil)
+        state = .disconnected
+        endpoint = nil
     }
     
     func send(_ data: Data) async throws {
@@ -30,8 +77,13 @@ class WebSocketService {
             throw WebSocketError.connectionFailed
         }
         
-        let message = URLSessionWebSocketTask.Message.data(data)
-        try await task.send(message)
+        do {
+            let message = URLSessionWebSocketTask.Message.data(data)
+            try await task.send(message)
+        } catch {
+            handleDisconnection()
+            throw WebSocketError.sendFailed(error)
+        }
     }
     
     func receive() async throws -> URLSessionWebSocketTask.Message {
@@ -39,6 +91,11 @@ class WebSocketService {
             throw WebSocketError.connectionFailed
         }
         
-        return try await task.receive()
+        do {
+            return try await task.receive()
+        } catch {
+            handleDisconnection()
+            throw WebSocketError.receiveFailed(error)
+        }
     }
 }
