@@ -18,7 +18,7 @@ def test_missing_env_vars():
     """環境変数が未設定の場合のテスト"""
     with pytest.raises(ValidationError) as exc_info:
         EnvironmentVariables()
-    
+
     error = str(exc_info.value)
     assert "Field required" in error
 
@@ -31,7 +31,7 @@ def test_invalid_openai_key():
             azure_speech_key="a" * 32,
             zonos_api_key="z_" + "a" * 32
         )
-    
+
     error = str(exc_info.value)
     assert "OpenAI APIキーの形式が正しくありません" in error
 
@@ -44,7 +44,7 @@ def test_invalid_azure_key():
             azure_speech_key="invalid-key",
             zonos_api_key="z_" + "a" * 32
         )
-    
+
     error = str(exc_info.value)
     assert "Azure Speech Servicesキーの形式が正しくありません" in error
 
@@ -57,7 +57,7 @@ def test_invalid_zonos_key():
             azure_speech_key="a" * 32,
             zonos_api_key="invalid-key"
         )
-    
+
     error = str(exc_info.value)
     assert "Zonos APIキーの形式が正しくありません" in error
 
