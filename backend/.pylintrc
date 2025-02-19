@@ -1,9 +1,11 @@
 [MESSAGES CONTROL]
-disable=C0111,  # missing docstring
-        C0103,  # invalid name
-        R0903,  # too few public methods
-        W0511,  # TODO/FIXME comments
-        C0301   # line too long
+disable=fixme,  # TODO/FIXME comments
+        too-few-public-methods,  # classes with few public methods
+        missing-docstring,  # missing docstrings
+        invalid-name,  # invalid names
+        line-too-long,  # line length
+        wrong-import-order,  # import order
+        import-error  # import errors
 
 [FORMAT]
 max-line-length=100
