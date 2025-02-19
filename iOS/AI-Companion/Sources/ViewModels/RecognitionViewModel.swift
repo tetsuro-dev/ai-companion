@@ -1,6 +1,4 @@
 import Foundation
-
-import Foundation
 import Combine
 
 @MainActor
@@ -98,6 +96,9 @@ class RecognitionViewModel: ObservableObject {
                     self?.errorMessage = "認識エラー: \(error.localizedDescription)"
                 }
             }
+        }
+    }
+}
         }
     }
 }
