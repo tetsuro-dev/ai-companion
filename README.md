@@ -23,9 +23,10 @@
     ```
 
 2. 必要な環境変数の設定
-    - OPENAI_API_KEY
-    - AZURE_SPEECH_KEY
-    - ZONOS_API_KEY
+    詳細な設定方法は[環境変数のドキュメント](backend/docs/env_vars.md)を参照してください。
+    - OPENAI_API_KEY (OpenAI GPT-4 APIキー)
+    - AZURE_SPEECH_KEY (Azure Speech Servicesキー)
+    - ZONOS_API_KEY (Zonos Text-to-Speech APIキー)
 
 3. Xcodeでプロジェクトを開く
 
