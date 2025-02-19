@@ -15,8 +15,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, readonly) MTLPixelFormat depthStencilPixelFormat;
 
 - (nullable instancetype)initWithDevice:(id<MTLDevice>)device
-                          pixelFormat:(MTLPixelFormat)pixelFormat
-                    depthPixelFormat:(MTLPixelFormat)depthFormat NS_DESIGNATED_INITIALIZER;
+                           pixelFormat:(MTLPixelFormat)pixelFormat
+                     depthPixelFormat:(MTLPixelFormat)depthFormat NS_DESIGNATED_INITIALIZER;
 - (instancetype)init NS_UNAVAILABLE;
 
 - (BOOL)loadModel:(NSString *)modelPath;
@@ -25,10 +25,10 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)render:(id<MTLCommandBuffer>)commandBuffer
        texture:(nullable id<MTLTexture>)outputTexture
     renderPass:(MTLRenderPassDescriptor *)renderPassDescriptor
-      viewSize:(CGSize)viewSize;
+      viewSize:(CGSize)viewSize NS_SWIFT_NAME(render(commandBuffer:texture:renderPass:viewSize:));
 
-- (void)updateWithSize:(CGSize)size;
-- (void)updateAnimations:(CFTimeInterval)duration;
+- (void)updateWithSize:(CGSize)size NS_SWIFT_NAME(update(size:));
+- (void)updateAnimations:(CFTimeInterval)duration NS_SWIFT_NAME(update(deltaTime:));
 
 @end
 
