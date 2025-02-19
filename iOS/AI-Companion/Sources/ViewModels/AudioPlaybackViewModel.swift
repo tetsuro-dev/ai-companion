@@ -49,7 +49,6 @@ class AudioPlaybackViewModel: ObservableObject {
             isPlaying = false
         }
     }
-}
     
     /// Plays text using TTS
     /// - Parameter text: The text to convert to speech

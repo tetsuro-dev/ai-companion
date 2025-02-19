@@ -95,10 +95,17 @@ class RecognitionViewModel: ObservableObject {
                 await MainActor.run {
                     self?.errorMessage = "認識エラー: \(error.localizedDescription)"
                 }
+                            }
+                        default:
+                            break
+                        }
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    self?.errorMessage = "認識エラー: \(error.localizedDescription)"
+                }
             }
-        }
-    }
-}
         }
     }
 }
