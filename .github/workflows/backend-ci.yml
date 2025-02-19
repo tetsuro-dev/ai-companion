@@ -44,10 +44,10 @@ jobs:
         python -m pytest tests/integration/test_api_pipeline.py -v
         
     - name: Run linting
-      continue-on-error: true
       run: |
         echo "Running linting checks..."
-        flake8 app tests || echo "Flake8 completed with warnings"
-        pylint --exit-zero app tests
-        mypy app tests || echo "Mypy completed with warnings"
-        echo "Linting completed"
+        python -m flake8 app tests || true
+        python -m pylint app tests --exit-zero
+        python -m mypy app tests || true
+        echo "Linting completed with status:"
+        python -m pylint app tests --exit-zero

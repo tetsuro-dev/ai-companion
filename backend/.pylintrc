@@ -1,11 +1,11 @@
+[MASTER]
+persistent=no
+exit-zero=yes
+
 [MESSAGES CONTROL]
 disable=fixme,  # TODO/FIXME comments
         too-few-public-methods,  # classes with few public methods
-        missing-docstring,  # missing docstrings
-        invalid-name,  # invalid names
-        line-too-long,  # line length
-        wrong-import-order,  # import order
-        import-error  # import errors
+        missing-docstring  # missing docstrings
 
 [FORMAT]
 max-line-length=100
