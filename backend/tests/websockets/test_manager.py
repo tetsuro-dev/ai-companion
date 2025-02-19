@@ -19,7 +19,7 @@ async def test_connection_limits(manager):
     initial_mem = process.memory_info().rss / 1024 / 1024  # MB
     
     # Test connection up to limit (using smaller sample for tests)
-    test_connections = 100  # Reduced for testing
+    test_connections = manager.MAX_CONNECTIONS  # Use actual limit
     for i in range(test_connections):
         websocket = MockWebSocket()
         client_id = f"test_client_{i}"

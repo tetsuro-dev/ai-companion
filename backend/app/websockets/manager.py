@@ -49,16 +49,20 @@ class ConnectionManager:
                 logger.info(f"Client {client_id} disconnected. Active connections: {len(self.active_connections)}")
             
     async def send_heartbeat(self, client_id: str) -> bool:
-        if client_id in self.active_connections:
-            try:
-                await self.active_connections[client_id].send_json({"type": "heartbeat"})
-                self.last_heartbeat[client_id] = datetime.now()
-                return True
-            except Exception as e:
-                logger.error(f"Heartbeat failed for client {client_id}: {str(e)}")
-                await self.disconnect(client_id)
-                return False
-        return False
+        if client_id not in self.active_connections:
+            raise WebSocketError(
+                WebSocketErrorCode.CONNECTION_ERROR,
+                f"Client {client_id} is not connected"
+            )
+            
+        try:
+            await self.active_connections[client_id].send_json({"type": "heartbeat"})
+            self.last_heartbeat[client_id] = datetime.now()
+            return True
+        except Exception as e:
+            logger.error(f"Heartbeat failed for client {client_id}: {str(e)}")
+            await self.disconnect(client_id)
+            return False
         
     def is_connected(self, client_id: str) -> bool:
         return client_id in self.active_connections
