@@ -4,10 +4,14 @@ import MetalKit
 
 @MainActor
 final class Live2DViewModel: ObservableObject {
+    static let shared = try! Live2DViewModel()
+    
     @Published private(set) var currentExpression: String = "neutral"
     @Published private(set) var isLoading: Bool = false
+    @Published private(set) var lipSyncValue: Float = 0
     
     private let live2DService: Live2DService
+    private var lipSyncTask: Task<Void, Never>?
     private var currentModel: Live2DModel?
     
     init() throws {
@@ -22,12 +26,21 @@ final class Live2DViewModel: ObservableObject {
         try live2DService.loadModel(name: name)
     }
     
-    func updateExpression(_ expression: String) {
-        live2DService.updateExpression(expression)
+    func updateExpression(_ expression: String) async {
+        try? await live2DService.updateExpression(expression)
     }
     
-    func updateLipSync(amplitude: Float) {
-        live2DService.updateLipSync(amplitude: amplitude)
+    func updateLipSync(amplitude: Float) async {
+        lipSyncValue = min(max(amplitude, 0), 1)
+        try? await live2DService.updateLipSync(amplitude: lipSyncValue)
+    }
+    
+    func stopLipSync() {
+        lipSyncTask?.cancel()
+        lipSyncTask = nil
+        Task {
+            await updateLipSync(amplitude: 0)
+        }
     }
     
     func updateViewSize(_ size: CGSize) {
