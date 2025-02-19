@@ -4,6 +4,8 @@
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
 #import <MetalKit/MetalKit.h>
+#import <simd/simd.h>
+#import "Live2DTypes.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -13,8 +15,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, readonly) MTLPixelFormat depthStencilPixelFormat;
 
 - (nullable instancetype)initWithDevice:(id<MTLDevice>)device
-                           pixelFormat:(MTLPixelFormat)pixelFormat
-                     depthPixelFormat:(MTLPixelFormat)depthFormat;
+                          pixelFormat:(MTLPixelFormat)pixelFormat
+                    depthPixelFormat:(MTLPixelFormat)depthFormat;
 
 - (BOOL)loadModel:(NSString *)modelPath;
 - (void)updateExpression:(NSString *)expression;

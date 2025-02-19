@@ -9,9 +9,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface Live2DModelBridge : NSObject
 
-@property (nonatomic, weak) id<Live2DModelDelegate> delegate;
+@property (nonatomic, weak, nullable) id<Live2DModelDelegate> delegate;
 
-- (instancetype)initWithDevice:(id<MTLDevice>)device;
+- (instancetype)initWithDevice:(id<MTLDevice>)device NS_DESIGNATED_INITIALIZER;
+- (instancetype)init NS_UNAVAILABLE;
+
 - (BOOL)loadModel:(NSString *)modelPath;
 - (void)updateExpression:(NSString *)expression;
 - (void)updateLipSync:(float)value;
