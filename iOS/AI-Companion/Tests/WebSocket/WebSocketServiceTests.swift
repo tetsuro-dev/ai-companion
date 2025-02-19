@@ -50,6 +50,40 @@ class WebSocketServiceTests: XCTestCase {
         XCTAssertTrue(mockStrategy.attemptsCalled.contains(0))
     }
     
+    func testNetworkInterruption() async throws {
+        try sut.connect(to: "test/endpoint")
+        XCTAssertEqual(sut.state, .connected)
+        
+        // Simulate network interruption
+        await sut.receive().catch { error in
+            XCTAssertTrue(error is WebSocketError)
+        }
+        
+        XCTAssertEqual(sut.state, .reconnecting)
+    }
+    
+    func testNormalClosure() {
+        // Test normal disconnection
+        try? sut.connect(to: "test/endpoint")
+        sut.disconnect()
+        
+        XCTAssertEqual(sut.state, .disconnected)
+        XCTAssertNil(sut.webSocketTask)
+    }
+    
+    func testMultipleReconnectionAttempts() async throws {
+        try sut.connect(to: "test/endpoint")
+        
+        // Simulate multiple failures
+        for _ in 0..<3 {
+            await sut.send(Data()).catch { _ in }
+        }
+        
+        // Verify increasing delays
+        XCTAssertEqual(mockStrategy.attemptsCalled.count, 3)
+        XCTAssertEqual(sut.state, .reconnecting)
+    }
+    
     func testExponentialBackoff() {
         let strategy = ExponentialBackoff(initialDelay: 1.0, maxDelay: 8.0, multiplier: 2.0)
         
