@@ -2,7 +2,7 @@ import Foundation
 import Combine
 
 @MainActor
-class RecognitionViewModel: ObservableObject {
+final class RecognitionViewModel: ObservableObject {
     @Published var recognizedText: String = ""
     @Published var isConnected: Bool = false
     @Published var errorMessage: String?
@@ -59,19 +59,19 @@ class RecognitionViewModel: ObservableObject {
         Task { [weak self] in
             do {
                 while self?.connectionState == .connected {
-                    if let result = try await self?.webSocketService.receive() {
-                        switch result {
-                        case .string(let jsonString):
-                            if let data = jsonString.data(using: .utf8),
-                               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                               let text = json["text"] as? String {
-                                await MainActor.run {
-                                    self?.recognizedText = text
-                                }
+                    guard let result = try await self?.webSocketService.receive() else { continue }
+                    
+                    switch result {
+                    case .string(let jsonString):
+                        if let data = jsonString.data(using: .utf8),
+                           let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                           let text = json["text"] as? String {
+                            await MainActor.run {
+                                self?.recognizedText = text
                             }
-                        default:
-                            break
                         }
+                    default:
+                        break
                     }
                 }
             } catch {
