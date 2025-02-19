@@ -93,4 +93,44 @@ class WebSocketServiceTests: XCTestCase {
         XCTAssertEqual(strategy.nextDelay(attempt: 3), 8.0)
         XCTAssertEqual(strategy.nextDelay(attempt: 4), 8.0) // Max delay reached
     }
+    
+    func testStateTransitions() async throws {
+        // Test initial state
+        XCTAssertEqual(sut.state, .disconnected)
+        
+        // Test connecting state
+        try sut.connect(to: "test/endpoint")
+        XCTAssertEqual(sut.state, .connected)
+        
+        // Test reconnecting state
+        await sut.send(Data()).catch { _ in }
+        XCTAssertEqual(sut.state, .reconnecting)
+        
+        // Test disconnected state
+        sut.disconnect()
+        XCTAssertEqual(sut.state, .disconnected)
+    }
+    
+    func testErrorConditions() async throws {
+        // Test connection error
+        XCTAssertThrowsError(try sut.connect(to: "")) { error in
+            XCTAssertEqual(error as? WebSocketError, .invalidURL)
+        }
+        
+        // Test send error with disconnected state
+        do {
+            try await sut.send(Data())
+            XCTFail("Expected connectionFailed error")
+        } catch {
+            XCTAssertEqual(error as? WebSocketError, .connectionFailed)
+        }
+        
+        // Test receive error with disconnected state
+        do {
+            _ = try await sut.receive()
+            XCTFail("Expected connectionFailed error")
+        } catch {
+            XCTAssertEqual(error as? WebSocketError, .connectionFailed)
+        }
+    }
 }
