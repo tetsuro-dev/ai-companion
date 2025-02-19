@@ -4,6 +4,8 @@ import logging
 import asyncio
 from datetime import datetime, timedelta
 
+from .errors import WebSocketError, WebSocketErrorCode
+
 logger = logging.getLogger(__name__)
 
 class ConnectionManager:
@@ -20,6 +22,12 @@ class ConnectionManager:
         if len(self.active_connections) >= self.MAX_CONNECTIONS:
             logger.warning(f"Connection limit reached ({self.MAX_CONNECTIONS})")
             return False
+            
+        if client_id in self.active_connections:
+            raise WebSocketError(
+                WebSocketErrorCode.INVALID_STATE,
+                f"Client {client_id} is already connected"
+            )
             
         await websocket.accept()
         self.active_connections[client_id] = websocket
@@ -70,3 +78,7 @@ class ConnectionManager:
         for client_id in stale_clients:
             logger.warning(f"Cleaning up stale connection for client {client_id}")
             await self.disconnect(client_id)
+            if client_id in self.active_connections:
+                del self.active_connections[client_id]
+                del self.last_heartbeat[client_id]
+                del self.connection_states[client_id]

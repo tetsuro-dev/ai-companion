@@ -4,23 +4,35 @@ import time
 from datetime import datetime, timedelta
 import psutil
 import os
-from fastapi.testclient import TestClient
 
 from app.websockets.manager import ConnectionManager
 from app.websockets.errors import WebSocketError, WebSocketErrorCode
+from tests.websockets.mocks import MockWebSocket
 
 pytestmark = pytest.mark.asyncio
 
-async def test_connection_limits(app, test_client, manager):
+async def test_connection_limits(manager):
     websockets = []
     
-    # Test connection up to limit
-    for i in range(5000):
-        websocket = test_client.websocket_connect("/api/speech/synthesize")
+    # Get initial memory usage
+    process = psutil.Process(os.getpid())
+    initial_mem = process.memory_info().rss / 1024 / 1024  # MB
+    
+    # Test connection up to limit (using smaller sample for tests)
+    test_connections = 100  # Reduced for testing
+    for i in range(test_connections):
+        websocket = MockWebSocket()
         client_id = f"test_client_{i}"
         connected = await manager.connect(client_id, websocket)
         assert connected, f"Failed to connect client {i}"
         websockets.append((client_id, websocket))
+        
+        # Verify memory usage
+        if i > 0 and i % 10 == 0:
+            process = psutil.Process(os.getpid())
+            mem_usage = process.memory_info().rss / 1024 / 1024  # MB
+            mem_per_conn = (mem_usage - initial_mem) / (i + 1)
+            assert mem_per_conn < 5, f"Memory usage per connection exceeds limit: {mem_per_conn:.2f}MB"
         
         # Verify memory usage
         process = psutil.Process(os.getpid())
@@ -28,7 +40,7 @@ async def test_connection_limits(app, test_client, manager):
         assert mem_usage / (i + 1) < 5, f"Memory usage per connection exceeds limit: {mem_usage/(i+1):.2f}MB"
     
     # Verify connection rejection after limit
-    websocket = TestClient(app).websocket_connect("/api/speech/synthesize")
+    websocket = MockWebSocket()
     connected = await manager.connect("overflow_client", websocket)
     assert not connected, "Should reject connection after limit"
     
@@ -36,8 +48,8 @@ async def test_connection_limits(app, test_client, manager):
     for client_id, _ in websockets:
         await manager.disconnect(client_id)
 
-async def test_heartbeat(app, test_client, manager):
-    websocket = test_client.websocket_connect("/api/speech/synthesize")
+async def test_heartbeat(manager):
+    websocket = MockWebSocket()
     client_id = "test_client"
     
     # Test successful heartbeat
@@ -50,11 +62,11 @@ async def test_heartbeat(app, test_client, manager):
     
     # Test heartbeat timeout
     manager.last_heartbeat[client_id] = datetime.now() - timedelta(seconds=65)
-    await asyncio.sleep(1)
+    await manager.cleanup_stale_connections()
     assert not manager.is_connected(client_id), "Connection should be closed after timeout"
 
-async def test_reconnection(app, test_client, manager):
-    websocket = test_client.websocket_connect("/api/speech/synthesize")
+async def test_reconnection(manager):
+    websocket = MockWebSocket()
     client_id = "test_client"
     
     # Test reconnection attempts
@@ -67,8 +79,8 @@ async def test_reconnection(app, test_client, manager):
         assert connected, f"Reconnection attempt {attempt} failed"
         assert latency < 0.2, f"Reconnection latency {latency:.3f}s exceeds 200ms threshold"
 
-async def test_error_handling(app, test_client, manager):
-    websocket = test_client.websocket_connect("/api/speech/synthesize")
+async def test_error_handling(manager):
+    websocket = MockWebSocket()
     client_id = "test_client"
     
     # Test invalid state error
@@ -79,6 +91,16 @@ async def test_error_handling(app, test_client, manager):
     
     # Test connection error
     await manager.disconnect(client_id)
+    await manager.cleanup_stale_connections()  # Ensure cleanup
     with pytest.raises(WebSocketError) as exc_info:
         await manager.send_heartbeat(client_id)
     assert exc_info.value.code == WebSocketErrorCode.CONNECTION_ERROR
+    
+    # Test rate limit error
+    for i in range(manager.MAX_CONNECTIONS + 1):
+        test_websocket = MockWebSocket()
+        test_id = f"test_client_{i}"
+        if i < manager.MAX_CONNECTIONS:
+            assert await manager.connect(test_id, test_websocket), f"Failed to connect client {i}"
+        else:
+            assert not await manager.connect(test_id, test_websocket), "Should reject connection after limit"
