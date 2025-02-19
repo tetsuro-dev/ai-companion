@@ -24,6 +24,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)loadModel:(NSString *)modelPath;
 - (void)updateExpression:(NSString *)expression;
 - (void)updateLipSync:(float)value;
+- (BOOL)loadMotion:(NSString *)motionPath;
 - (void)render:(id<MTLCommandBuffer>)commandBuffer
        texture:(nullable id<MTLTexture>)outputTexture
     renderPass:(MTLRenderPassDescriptor *)renderPassDescriptor

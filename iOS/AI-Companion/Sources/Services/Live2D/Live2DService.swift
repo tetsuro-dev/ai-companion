@@ -34,16 +34,29 @@ class Live2DService: Live2DModelDelegate {
     
     func loadModel(name: String) throws {
         let model = try Live2DModel.load(name: name)
-        guard let modelPath = Bundle.main.path(forResource: name, ofType: "model3"),
+        guard let modelPath = Bundle.main.path(forResource: name, ofType: "model3", inDirectory: "Live2D/\(name)"),
               modelBridge.loadModel(modelPath) else {
             throw Live2DError.modelLoadFailed
         }
         currentModel = model
         delegate?.live2DService(self, didLoadModel: model)
+        
+        // Start with neutral expression
+        updateExpression("neutral")
     }
     
     func updateExpression(_ expression: String) {
+        guard let model = currentModel,
+              let motionFile = model.getMotionFile(for: expression) else {
+            return
+        }
+        
         modelBridge.updateExpression(expression)
+        
+        // Load and play the corresponding motion
+        if let motionPath = Bundle.main.path(forResource: motionFile, ofType: nil, inDirectory: "Live2D/\(model.modelName)/motion") {
+            renderer.loadMotion(motionPath)
+        }
     }
     
     func updateLipSync(amplitude: Float) {
@@ -71,7 +84,8 @@ class Live2DService: Live2DModelDelegate {
     // MARK: - Live2DModelDelegate
     
     func onModelLoaded() {
-        // Handle model loaded event
+        // Start idle animation after model is loaded
+        updateExpression("idle")
     }
     
     func onModelUpdated() {
@@ -79,6 +93,7 @@ class Live2DService: Live2DModelDelegate {
     }
     
     func onExpressionUpdated(_ expression: String) {
+        currentModel?.currentExpression = expression
         delegate?.live2DService(self, didUpdateExpression: expression)
     }
     
