@@ -39,15 +39,13 @@ jobs:
         pip install -r requirements.txt
         pip install pytest flake8 pylint mypy
         
-    - name: Run tests
-      run: |
-        python -m pytest tests/integration/test_api_pipeline.py -v
-        
     - name: Run linting
       run: |
         echo "Running linting checks..."
         python -m flake8 app tests || true
         python -m pylint --exit-zero app tests
         python -m mypy app tests || true
-        echo "Linting completed with status:"
-        python -m pylint --exit-zero app tests
+        
+    - name: Run tests
+      run: |
+        python -m pytest tests/integration/test_api_pipeline.py tests/integration/test_health.py -v
