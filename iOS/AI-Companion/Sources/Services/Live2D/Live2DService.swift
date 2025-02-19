@@ -45,7 +45,7 @@ class Live2DService: Live2DModelDelegate {
         updateExpression("neutral")
     }
     
-    func updateExpression(_ expression: String) {
+    func updateExpression(_ expression: String) async throws {
         guard let model = currentModel,
               let motionFile = model.getMotionFile(for: expression) else {
             return
@@ -57,10 +57,16 @@ class Live2DService: Live2DModelDelegate {
         if let motionPath = Bundle.main.path(forResource: motionFile, ofType: nil, inDirectory: "Live2D/\(model.modelName)/motion") {
             renderer.loadMotion(motionPath)
         }
+        
+        // Send avatar expression event via WebSocket
+        try await WebSocketService.shared.sendAvatarExpression(expression)
     }
     
-    func updateLipSync(amplitude: Float) {
+    func updateLipSync(amplitude: Float) async throws {
         modelBridge.updateLipSync(amplitude)
+        
+        // Send lip sync event via WebSocket
+        try await WebSocketService.shared.sendAvatarLipSync(amplitude)
     }
     
     func updateViewSize(_ size: CGSize) {

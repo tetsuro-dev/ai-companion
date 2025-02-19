@@ -83,7 +83,7 @@ struct ChatView: View {
                 Button(action: {
                     Task {
                         await viewModel.sendMessage()
-                        live2DViewModel.updateExpression("speaking")
+                        await live2DViewModel.updateExpression("speaking")
                     }
                 }) {
                     Image(systemName: "arrow.up.circle.fill")
