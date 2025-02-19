@@ -42,7 +42,8 @@ struct Live2DView: UIViewRepresentable {
         }
         
         func draw(in view: MTKView) {
-            guard let commandBuffer = view.device?.makeCommandQueue()?.makeCommandBuffer() else {
+            guard let device = view.device,
+                  let commandBuffer = device.makeCommandQueue()?.makeCommandBuffer() else {
                 return
             }
             
@@ -55,7 +56,15 @@ struct Live2DView: UIViewRepresentable {
             
             commandBuffer.present(view.currentDrawable!)
             commandBuffer.commit()
+            
+            // Update performance metrics
+            PerformanceMonitor.shared.updateFPS()
+            if frameCount % 60 == 0 { // Log every 60 frames
+                PerformanceMonitor.shared.logPerformanceMetrics(device: device)
+            }
         }
+        
+        private var frameCount: Int = 0
     }
 }
 
