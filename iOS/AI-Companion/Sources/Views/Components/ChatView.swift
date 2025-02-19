@@ -4,6 +4,7 @@ struct ChatView: View {
     @StateObject private var audioPlaybackViewModel = AudioPlaybackViewModel()
     @StateObject private var audioViewModel = AudioRecordingViewModel()
     @StateObject private var viewModel: ChatViewModel
+    @StateObject private var live2DViewModel = try! Live2DViewModel()
     
     init() {
         _viewModel = StateObject(wrappedValue: ChatViewModel(audioPlaybackViewModel: audioPlaybackViewModel))
@@ -11,6 +12,13 @@ struct ChatView: View {
     
     var body: some View {
         VStack {
+            Live2DView(viewModel: live2DViewModel)
+                .frame(height: 300)
+                .onAppear {
+                    Task {
+                        try? await live2DViewModel.loadModel(name: "mark_free_t04")
+                    }
+                }
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack {
@@ -75,6 +83,7 @@ struct ChatView: View {
                 Button(action: {
                     Task {
                         await viewModel.sendMessage()
+                        await live2DViewModel.updateExpression("speaking")
                     }
                 }) {
                     Image(systemName: "arrow.up.circle.fill")

@@ -41,7 +41,17 @@ class WebSocketService {
             guard let self = self else { return }
             
             switch result {
-            case .success:
+            case .success(let message):
+                switch message {
+                case .data(let data):
+                    self.handleAvatarEvent(data)
+                case .string(let string):
+                    if let data = string.data(using: .utf8) {
+                        self.handleAvatarEvent(data)
+                    }
+                @unknown default:
+                    break
+                }
                 self.startListeningForMessages()
             case .failure:
                 self.handleDisconnection()

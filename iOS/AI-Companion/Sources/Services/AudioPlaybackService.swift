@@ -92,11 +92,26 @@ class AudioPlaybackService {
         do {
             audioPlayer = try AVAudioPlayer(data: audioData)
             audioPlayer?.prepareToPlay()
+            audioPlayer?.isMeteringEnabled = true
+            
             guard audioPlayer?.play() == true else {
                 logger.error("Failed to start audio playback")
                 throw AudioPlaybackError.playbackFailed(NSError(domain: "AudioPlayback", code: -1))
             }
             logger.info("Started audio playback")
+            
+            // Start monitoring audio levels for lip sync
+            guard let player = audioPlayer else { return }
+            Task {
+                while player.isPlaying && !Task.isCancelled {
+                    player.updateMeters()
+                    let amplitude = Float(pow(10, player.averagePower(forChannel: 0) / 20))
+                    try? await Live2DViewModel.shared.updateLipSync(amplitude: amplitude)
+                    try? await Task.sleep(nanoseconds: UInt64(1.0 / 60.0 * 1_000_000_000)) // 60fps update
+                }
+                // Reset lip sync when audio stops
+                try? await Live2DViewModel.shared.updateLipSync(amplitude: 0)
+            }
         } catch {
             logger.error("Failed to initialize audio player: \(error.localizedDescription)")
             throw AudioPlaybackError.playbackFailed(error)
@@ -107,6 +122,7 @@ class AudioPlaybackService {
     func stopPlayback() {
         audioPlayer?.stop()
         audioPlayer = nil
+        Live2DViewModel.shared.stopLipSync()
         logger.info("Stopped audio playback")
     }
 }
