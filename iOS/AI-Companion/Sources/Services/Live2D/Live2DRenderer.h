@@ -16,20 +16,21 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (nullable instancetype)initWithDevice:(id<MTLDevice>)device
                            pixelFormat:(MTLPixelFormat)pixelFormat
-                     depthPixelFormat:(MTLPixelFormat)depthFormat NS_SWIFT_NAME(init(device:pixelFormat:depthPixelFormat:)) NS_DESIGNATED_INITIALIZER;
+                     depthPixelFormat:(MTLPixelFormat)depthFormat NS_DESIGNATED_INITIALIZER;
+
 - (instancetype)init NS_UNAVAILABLE;
 + (instancetype)new NS_UNAVAILABLE;
 
-- (BOOL)loadModel:(NSString *)modelPath NS_SWIFT_NAME(load(modelPath:));
-- (void)updateExpression:(NSString *)expression NS_SWIFT_NAME(update(expression:));
-- (void)updateLipSync:(float)value NS_SWIFT_NAME(update(lipSync:));
+- (BOOL)loadModel:(NSString *)modelPath;
+- (void)updateExpression:(NSString *)expression;
+- (void)updateLipSync:(float)value;
 - (void)render:(id<MTLCommandBuffer>)commandBuffer
        texture:(nullable id<MTLTexture>)outputTexture
     renderPass:(MTLRenderPassDescriptor *)renderPassDescriptor
-      viewSize:(CGSize)viewSize NS_SWIFT_NAME(render(commandBuffer:texture:renderPass:viewSize:));
+      viewSize:(CGSize)viewSize;
 
-- (void)updateWithSize:(CGSize)size NS_SWIFT_NAME(update(size:));
-- (void)updateAnimations:(CFTimeInterval)duration NS_SWIFT_NAME(update(deltaTime:));
+- (void)updateWithSize:(CGSize)size;
+- (void)updateAnimations:(CFTimeInterval)duration;
 
 @end
 
