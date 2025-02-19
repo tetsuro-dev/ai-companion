@@ -7,6 +7,7 @@ class WebSocketErrorCode(Enum):
     TIMEOUT = 1002
     RATE_LIMIT = 1003
     SERVER_ERROR = 1004
+    INVALID_STATE = 1005
 
 class WebSocketError(Exception):
     def __init__(self, code: WebSocketErrorCode, message: str, details: Optional[Dict] = None):

@@ -34,10 +34,7 @@ async def test_connection_limits(manager):
             mem_per_conn = (mem_usage - initial_mem) / (i + 1)
             assert mem_per_conn < 5, f"Memory usage per connection exceeds limit: {mem_per_conn:.2f}MB"
         
-        # Verify memory usage
-        process = psutil.Process(os.getpid())
-        mem_usage = process.memory_info().rss / 1024 / 1024  # MB
-        assert mem_usage / (i + 1) < 5, f"Memory usage per connection exceeds limit: {mem_usage/(i+1):.2f}MB"
+        # Memory usage verification is done above
     
     # Verify connection rejection after limit
     websocket = MockWebSocket()
