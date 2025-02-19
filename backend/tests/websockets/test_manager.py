@@ -9,14 +9,14 @@ from fastapi.testclient import TestClient
 from app.websockets.manager import ConnectionManager
 from app.websockets.errors import WebSocketError, WebSocketErrorCode
 
-@pytest.mark.asyncio
-async def test_connection_limits():
-    manager = ConnectionManager()
+pytestmark = pytest.mark.asyncio
+
+async def test_connection_limits(app, test_client, manager):
     websockets = []
     
     # Test connection up to limit
     for i in range(5000):
-        websocket = TestClient(app).websocket_connect("/api/speech/synthesize")
+        websocket = test_client.websocket_connect("/api/speech/synthesize")
         client_id = f"test_client_{i}"
         connected = await manager.connect(client_id, websocket)
         assert connected, f"Failed to connect client {i}"
@@ -36,10 +36,8 @@ async def test_connection_limits():
     for client_id, _ in websockets:
         await manager.disconnect(client_id)
 
-@pytest.mark.asyncio
-async def test_heartbeat():
-    manager = ConnectionManager()
-    websocket = TestClient(app).websocket_connect("/api/speech/synthesize")
+async def test_heartbeat(app, test_client, manager):
+    websocket = test_client.websocket_connect("/api/speech/synthesize")
     client_id = "test_client"
     
     # Test successful heartbeat
@@ -55,10 +53,8 @@ async def test_heartbeat():
     await asyncio.sleep(1)
     assert not manager.is_connected(client_id), "Connection should be closed after timeout"
 
-@pytest.mark.asyncio
-async def test_reconnection():
-    manager = ConnectionManager()
-    websocket = TestClient(app).websocket_connect("/api/speech/synthesize")
+async def test_reconnection(app, test_client, manager):
+    websocket = test_client.websocket_connect("/api/speech/synthesize")
     client_id = "test_client"
     
     # Test reconnection attempts
@@ -71,10 +67,8 @@ async def test_reconnection():
         assert connected, f"Reconnection attempt {attempt} failed"
         assert latency < 0.2, f"Reconnection latency {latency:.3f}s exceeds 200ms threshold"
 
-@pytest.mark.asyncio
-async def test_error_handling():
-    manager = ConnectionManager()
-    websocket = TestClient(app).websocket_connect("/api/speech/synthesize")
+async def test_error_handling(app, test_client, manager):
+    websocket = test_client.websocket_connect("/api/speech/synthesize")
     client_id = "test_client"
     
     # Test invalid state error
