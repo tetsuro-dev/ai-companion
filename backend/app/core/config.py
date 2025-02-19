@@ -3,7 +3,7 @@ import logging
 
 from pydantic_settings import BaseSettings
 
-from .validation import EnvironmentVariables, EnvVarError
+from .validation import EnvironmentVariables
 
 logger = logging.getLogger(__name__)
 
